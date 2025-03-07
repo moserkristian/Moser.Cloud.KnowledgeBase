@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using MediatR;
+using System.Diagnostics;
+using Example.Application.Common.Interfaces;
 
 namespace Example.Application.Common.Behaviors;
 
@@ -22,7 +24,7 @@ public class TransactionBehavior<TRequest, TResponse> : IPipelineBehavior<TReque
         }
 
         _logger.LogInformation("Starting transaction for {RequestType}", typeof(TRequest).Name);
-        return await _unitOfWork.ExecuteInTransactionAsync(async () =>
+        return await _unitOfWork.ExecuteTransactionAsync(async () =>
         {
             TResponse response = await next();
             _logger.LogInformation("Transaction committed for {RequestType}", typeof(TRequest).Name);

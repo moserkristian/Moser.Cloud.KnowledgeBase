@@ -20,5 +20,6 @@ public class Example : AggregateRoot
         if (item == null)
             throw new DomainException("Item cannot be null.");
         Items.Add(item);
+        AddDomainEvent(new ExampleItemAddedDomainEvent(this.Id, item.Id));
     }
 }
