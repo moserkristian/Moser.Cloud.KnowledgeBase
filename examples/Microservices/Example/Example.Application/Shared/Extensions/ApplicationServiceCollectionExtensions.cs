@@ -1,11 +1,12 @@
 ﻿using System.Reflection;
+using Example.Application.Common.Behaviors;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Example.Application.Shared.Extensions;
 
 public static class ApplicationServiceCollectionExtension
 {
-    public static ApplicationServiceCollectionExtensions ApplicationLayer(
+    public static ApplicationServiceCollectionExtensions ApplicationServices(
         this IServiceCollection services)
         => new ApplicationServiceCollectionExtensions(services);
 }
@@ -24,13 +25,13 @@ public class ApplicationServiceCollectionExtensions
         _services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
-            cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
-            cfg.AddOpenBehavior(typeof(ValidatorBehavior<,>));
+            cfg.AddOpenBehavior(typeof(PerformanceBehavior<,>));
             cfg.AddOpenBehavior(typeof(TransactionBehavior<,>));
+            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });
         return _services;
     }
-
+    /*
     public IServiceCollection AddAutoMapperServices()
     {
         _services.AddAutoMapper(cfg =>
@@ -38,5 +39,5 @@ public class ApplicationServiceCollectionExtensions
             cfg.AddProfile<ExampleMappingProfile>();
         }, Assembly.GetExecutingAssembly());
         return _services;
-    }
+    }*/
 }

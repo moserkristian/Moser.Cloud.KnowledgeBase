@@ -1,35 +1,47 @@
 ﻿using Example.Infrastructure.Persistence;
+using Example.Application.Shared.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Example.Infrastructure.Shared.Extensions;
 
-public static class InfrastructureServiceCollectionExtensions
+public static class InfrastructureServiceCollectionExtension
 {
-    public static IServiceCollection AddPersistenc(this IServiceCollection services, IConfiguration configuration)
+    public static InfrastructureServiceCollectionExtensions InfrastructureServices(
+        this IServiceCollection services)
+        => new InfrastructureServiceCollectionExtensions(services);
+}
+
+public class InfrastructureServiceCollectionExtensions
+{
+    private readonly IServiceCollection _services;
+    public InfrastructureServiceCollectionExtensions(
+        IServiceCollection services)
     {
-        // Register EF Core DbContext.
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
-        return services;
+        _services = services;
+    }
+    /*
+    public IServiceCollection AddPersistenc(string connectionString)
+    {
+        _services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlServer(connectionString));
+        return _services;
     }
 
-    public static IServiceCollection AddRepositories(this IServiceCollection services)
+    public IServiceCollection AddRepositories()
     {
-        // Register repository implementations.
-        services.AddScoped<IExampleAggregateRepository, ExampleAggregateRepository>();
-        return services;
+        _services.AddScoped<IExampleRepository, ExampleRepository>();
+        return _services;
     }
 
-    public static IServiceCollection AddUnitOfWork(this IServiceCollection services)
+    public IServiceCollection AddUnitOfWork()
     {
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
-        return services;
+        _services.AddScoped<IUnitOfWork, UnitOfWork>();
+        return _services;
     }
 
-    public static IServiceCollection AddMessaging(this IServiceCollection services)
+    public IServiceCollection AddMessaging()
     {
-        // Register messaging/integration services (e.g. Azure Service Bus publisher).
-        services.AddTransient<IIntegrationEventService, IntegrationEventPublisher>();
-        return services;
-    }
+        _services.AddTransient<IIntegrationEventService, IntegrationEventPublisher>();
+        return _services;
+    }*/
 }

@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using System.Diagnostics;
-using Example.Application.Common.Interfaces;
+using Example.Application.Common.Persistence;
 
 namespace Example.Application.Common.Behaviors;
 

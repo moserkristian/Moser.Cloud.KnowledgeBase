@@ -13,15 +13,15 @@ This documentation is divided into multiple sections, each focusing on different
   - ~~[Domain-Driven Design (DDD)](CleanArchitecture/DDD.md)~~
   - ~~[CQRS (Command Query Responsibility Segregation)](CleanArchitecture/CQRS.md)~~
   - ~~[Event-Driven Architecture](CleanArchitecture/EventDriven.md)~~
-  - [Domain Layer Structure](CleanArchitecture/DomainLayer.md)
-  - [Application Layer Structure](CleanArchitecture/ApplicationLayer.md)
-  - [Infrastructure Layer Structure](CleanArchitecture/InfrastructureLayer.md)
-  - [Api Layer Structure](CleanArchitecture/ApiLayer.md)
+  - [Domain Layer Structure](Architecture/CleanArchitecture/DomainLayer.md)
+  - [Application Layer Structure](Architecture/CleanArchitecture/ApplicationLayer.md)
+  - [Infrastructure Layer Structure](Architecture/CleanArchitecture/InfrastructureLayer.md)
+  - [Api Layer Structure](Architecture/CleanArchitecture/ApiLayer.md)
   - ~~[Testing Strategies](CleanArchitecture/TestingStrategies.md)~~
 
 - [🏛️ Architecture](#-architecture)
   - [Microservices Overview](Architecture/Microservices.md)~~
-  - ~~[Messaging & Event Processing](Architecture/Messaging.md)~~
+  - [Messaging](Architecture/Messaging.md)
   - ~~[API Gateway Design](Architecture/API-Gateway.md)~~
   - ~~[Database Strategy](Architecture/Database-Strategy.md)~~
   - ~~[Scalability & Replication](Architecture/Scalability.md)~~
@@ -41,7 +41,7 @@ This documentation is divided into multiple sections, each focusing on different
 /docs/                               # 📖 Documentation
 	/Architecture/                   # 🏛️ High-level system design & microservices
 		Microservices.md             # 📜 List of microservices & responsibilities
-		~~Messaging.md~~                 # 📬 Event-driven communication (Azure Service Bus/Kafka)
+		Messaging.md                 # 📬 Event-driven communication (Azure Service Bus/Kafka)
 		~~API-Gateway.md~~               # 🚪 Gateway architecture (YARP/Ocelot)
 		~~Database-Strategy.md~~         # 💾 Best DB choices per microservice (EF Core, raw SQL)
 		~~Scalability.md~~               # 🚀 Horizontal scaling, replication, multi-region setups

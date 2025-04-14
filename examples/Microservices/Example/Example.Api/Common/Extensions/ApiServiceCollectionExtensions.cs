@@ -1,11 +1,11 @@
 ﻿using Microsoft.Identity.Web;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
-namespace Example.Api.Extensions;
+namespace Example.Api.Common.Extensions;
 
 public static class ApiServiceCollectionExtension
 {
-    public static ApiServiceCollectionExtensions ApplicationLayer(
+    public static ApiServiceCollectionExtensions ApiServices(
         this IServiceCollection services)
         => new ApiServiceCollectionExtensions(services);
 }
@@ -18,10 +18,20 @@ public class ApiServiceCollectionExtensions
         _services = services;
     }
 
-    public IServiceCollection AddAuthentication()
+    public IServiceCollection AddApplicationInsightsTelemetry(string? instrumentationKey)
+    {
+        return _services.AddApplicationInsightsTelemetry(options =>
+        {
+            options.ConnectionString = instrumentationKey
+                ?? throw new ArgumentNullException(nameof(instrumentationKey),
+                "Application Insights connection string is required.");
+        });
+    }
+
+    public IServiceCollection AddMicrosoftIdentityWebApi(IConfigurationSection configurationSection)
     {
         _services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+            .AddMicrosoftIdentityWebApi(configurationSection);
         return _services;
     }
 
@@ -31,7 +41,7 @@ public class ApiServiceCollectionExtensions
         return _services;
     }
 
-    public IServiceCollection AddSwaggerDocumentation()
+    public IServiceCollection AddSwagger()
     {
         _services.AddEndpointsApiExplorer();
         _services.AddSwaggerGen();

@@ -1,4 +1,4 @@
-﻿namespace Example.Application.Common.Interfaces;
+﻿namespace Example.Application.Common.Persistence;
 
 public interface IUnitOfWork
 {
