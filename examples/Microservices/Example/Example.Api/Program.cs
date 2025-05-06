@@ -1,4 +1,3 @@
-using Example.Api.Common.Bootstrap;
 using Example.Api.Common.Extensions;
 
 namespace Example.Api;
@@ -7,21 +6,14 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        var configuration = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .AddEnvironmentVariables()
-            .AddUserSecrets<Program>(optional: true)
-            .Build();
-#pragma warning disable CS0612 // Type or member is obsolete
-        using var bootstrapLogger = new BootstrapLogger<Program>(
-            configuration.GetConnectionString("ApplicationInsights"));
-#pragma warning restore CS0612 // Type or member is obsolete
-        bootstrapLogger.LogInformation("Bootstrap logger: Application startup initiated.");
-
-
-
         var builder = WebApplication.CreateBuilder(args);
+
         builder.AddServiceDefaults();
+
+        builder.Services
+            .AddApplication()
+            .AddInfrastructure(builder.Configuration)
+            .AddPresentation(builder.Configuration); // REST, Swagger, Filters
 
         builder.Services
             .ApiServices().AddApplicationInsightsTelemetry(builder.Configuration.GetConnectionString("ApplicationInsights"))
@@ -45,6 +37,9 @@ public class Program
         // END OWN MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR
 
         var app = builder.Build();
+
+        app.UseInfrastructure(); // ExceptionHandler, Migrations, etc.
+        app.UsePresentation();    // Controllers, Auth, etc.
 
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
         logger.LogInformation("Normal logger: Application has started successfully.");

@@ -4,6 +4,34 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Example.Application.Shared.Extensions;
 
+public static class ApplicationServiceCollectionExtensions
+{
+    public static IServiceCollection AddApplication(this IServiceCollection services)
+    {
+        // Registrácia CQRS handlerov (napr. CommandHandler, QueryHandler)
+        services.Scan(scan => scan
+            .FromAssemblyOf<ApplicationServiceCollectionExtensions>()
+            .AddClasses(classes => classes.AssignableTo(typeof(IRequestHandler<,>)))
+            .AsImplementedInterfaces()
+            .WithScopedLifetime());
+
+        // Registrácia validátorov (napr. pre vstupné modely)
+        services.Scan(scan => scan
+            .FromAssemblyOf<ApplicationServiceCollectionExtensions>()
+            .AddClasses(classes => classes.AssignableTo(typeof(IValidator<>)))
+            .AsImplementedInterfaces()
+            .WithScopedLifetime());
+
+        // Registrácia ďalších služieb aplikácie
+        // services.AddScoped<IUserService, UserService>();
+        // services.AddScoped<IRoleService, RoleService>();
+
+        return services;
+    }
+}
+
+
+/*
 public static class ApplicationServiceCollectionExtension
 {
     public static ApplicationServiceCollectionExtensions ApplicationServices(
@@ -31,13 +59,15 @@ public class ApplicationServiceCollectionExtensions
         });
         return _services;
     }
-    /*
-    public IServiceCollection AddAutoMapperServices()
+*/
+/*
+public IServiceCollection AddAutoMapperServices()
+{
+    _services.AddAutoMapper(cfg =>
     {
-        _services.AddAutoMapper(cfg =>
-        {
-            cfg.AddProfile<ExampleMappingProfile>();
-        }, Assembly.GetExecutingAssembly());
-        return _services;
-    }*/
-}
+        cfg.AddProfile<ExampleMappingProfile>();
+    }, Assembly.GetExecutingAssembly());
+    return _services;
+}*/
+
+//}

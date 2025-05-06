@@ -47,7 +47,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Architecture", "Architectur
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microservices", "Microservices", "{664C146D-ACD0-4BAF-BEF1-F128C9218FAC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Api", "examples\Microservices\Example\Example.Api\Example.Api.csproj", "{4D13EF7C-C6AE-3A17-DE2B-112DA7D4E418}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Presentation", "examples\Microservices\Example\Example.Api\Example.Presentation.csproj", "{4D13EF7C-C6AE-3A17-DE2B-112DA7D4E418}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Example", "Example", "{A4F97736-77FD-422A-B97E-A1EE833DE5C5}"
 EndProject
@@ -59,7 +59,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Application", "exam
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity", "Identity", "{1409BE80-3124-4CFB-B682-1FAAF27DBCE8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Api", "src\Microservices\Identity\Identity.Api\Identity.Api.csproj", "{590065E6-284C-96DF-6A0C-44D0573BB058}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Presentation", "src\Microservices\Identity\Identity.Api\Identity.Presentation.csproj", "{590065E6-284C-96DF-6A0C-44D0573BB058}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

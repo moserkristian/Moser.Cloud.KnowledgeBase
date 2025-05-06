@@ -1,22 +1,17 @@
-﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Example.Domain.Common.Abstractions;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Example.Infrastructure.Persistence;
 
 public class ApplicationDbContext : DbContext
 {
-    private readonly IMediator _mediator;
-    public ApplicationDbContext(
-        DbContextOptions<ApplicationDbContext> options,
-        IMediator mediator)
-        : base(options)
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
-        _mediator = mediator;
+
     }
 
     public DbSet<Domain.Aggregates.Example.Example> Examples { get; set; }
 
+    /*
     public async Task SaveEntitiesAsync(CancellationToken cancellationToken = default)
     {
         await base.SaveChangesAsync(cancellationToken);
@@ -36,6 +31,7 @@ public class ApplicationDbContext : DbContext
             await _mediator.Publish(domainEvent, cancellationToken);
         }
     }
+    */
 
     public async Task ExecuteTransactionAsync(Func<Task> operation, CancellationToken cancellationToken = default)
     {

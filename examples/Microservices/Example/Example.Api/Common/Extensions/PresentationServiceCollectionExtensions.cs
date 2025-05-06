@@ -5,15 +5,15 @@ namespace Example.Api.Common.Extensions;
 
 public static class ApiServiceCollectionExtension
 {
-    public static ApiServiceCollectionExtensions ApiServices(
+    public static PresentationServiceCollectionExtensions ApiServices(
         this IServiceCollection services)
-        => new ApiServiceCollectionExtensions(services);
+        => new PresentationServiceCollectionExtensions(services);
 }
 
-public class ApiServiceCollectionExtensions
+public class PresentationServiceCollectionExtensions
 {
     private readonly IServiceCollection _services;
-    public ApiServiceCollectionExtensions(IServiceCollection services)
+    public PresentationServiceCollectionExtensions(IServiceCollection services)
     {
         _services = services;
     }
@@ -30,7 +30,8 @@ public class ApiServiceCollectionExtensions
 
     public IServiceCollection AddMicrosoftIdentityWebApi(IConfigurationSection configurationSection)
     {
-        _services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        _services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApi(configurationSection);
         return _services;
     }

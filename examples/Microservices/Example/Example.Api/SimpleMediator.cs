@@ -7,8 +7,8 @@ public interface IRequestHandler<IRequest, TResponse>
     Task<TResponse> Handle(IRequest request, CancellationToken cancellationToken = default);
 }
 
-internal sealed class ExampleRequestHandler(
-    ) : IRequestHandler<ExampleRequest, string>
+internal sealed class ExampleRequestHandler()
+    : IRequestHandler<ExampleRequest, string>
 {
     public async Task<string> Handle(ExampleRequest request, CancellationToken cancellationToken = default)
     {

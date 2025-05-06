@@ -12,8 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\examples\Microservices\Example\Example.Api\Example.Api.csproj" />
-    <ProjectReference Include="..\..\Microservices\Identity\Identity.Api\Identity.Api.csproj" />
+    <ProjectReference Include="..\..\..\examples\Microservices\Example\Example.Api\Example.Presentation.csproj" />
+    <ProjectReference Include="..\..\Microservices\Identity\Identity.Api\Identity.Presentation.csproj" />
     <ProjectReference Include="..\..\Presentations\Web\Web.csproj" />
   </ItemGroup>
 
