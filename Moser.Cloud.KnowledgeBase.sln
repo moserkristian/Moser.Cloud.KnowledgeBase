@@ -61,6 +61,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity", "Identity", "{14
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Identity.Presentation", "src\Microservices\Identity\Identity.Api\Identity.Presentation.csproj", "{590065E6-284C-96DF-6A0C-44D0573BB058}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FaaIngestion", "FaaIngestion", "{C83F4830-E944-4E46-B921-9C214C79C1E4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaaIngestion.Domain", "src\Microservices\FaaIngestion\FaaIngestion.Domain\FaaIngestion.Domain.csproj", "{CFD5F18B-D65A-4CAE-A3FE-6857B38E6BBD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,6 +107,10 @@ Global
 		{590065E6-284C-96DF-6A0C-44D0573BB058}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{590065E6-284C-96DF-6A0C-44D0573BB058}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{590065E6-284C-96DF-6A0C-44D0573BB058}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFD5F18B-D65A-4CAE-A3FE-6857B38E6BBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFD5F18B-D65A-4CAE-A3FE-6857B38E6BBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFD5F18B-D65A-4CAE-A3FE-6857B38E6BBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFD5F18B-D65A-4CAE-A3FE-6857B38E6BBD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -127,6 +135,8 @@ Global
 		{290B74E4-BABD-4732-A5EE-5995B94E135D} = {A4F97736-77FD-422A-B97E-A1EE833DE5C5}
 		{1409BE80-3124-4CFB-B682-1FAAF27DBCE8} = {9A523127-44F9-4A8D-9807-F18530625291}
 		{590065E6-284C-96DF-6A0C-44D0573BB058} = {1409BE80-3124-4CFB-B682-1FAAF27DBCE8}
+		{C83F4830-E944-4E46-B921-9C214C79C1E4} = {9A523127-44F9-4A8D-9807-F18530625291}
+		{CFD5F18B-D65A-4CAE-A3FE-6857B38E6BBD} = {C83F4830-E944-4E46-B921-9C214C79C1E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C20D381E-CD9D-422D-8C47-5865681B264D}

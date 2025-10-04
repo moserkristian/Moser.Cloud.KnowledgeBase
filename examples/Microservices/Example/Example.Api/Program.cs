@@ -10,10 +10,10 @@ public class Program
 
         builder.AddServiceDefaults();
 
-        builder.Services
-            .AddApplication()
-            .AddInfrastructure(builder.Configuration)
-            .AddPresentation(builder.Configuration); // REST, Swagger, Filters
+        //builder.Services
+            //.AddApplication()
+            //.AddInfrastructure(builder.Configuration)
+            //.AddPresentation(builder.Configuration); // REST, Swagger, Filters
 
         builder.Services
             .ApiServices().AddApplicationInsightsTelemetry(builder.Configuration.GetConnectionString("ApplicationInsights"))
@@ -22,10 +22,10 @@ public class Program
             .ApiServices().AddSwagger();
 
 
-        builder.Host.UseSerilog();
-        builder.Services.AddApiServices();
-        builder.Services.AddApplicationServices();
-        builder.Services.AddInfrastructureServices(builder.Configuration);
+        //builder.Host.UseSerilog();
+        //builder.Services.AddApiServices();
+        //builder.Services.AddApplicationServices();
+        //builder.Services.AddInfrastructureServices(builder.Configuration);
 
 
         // OWN MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR
@@ -38,8 +38,8 @@ public class Program
 
         var app = builder.Build();
 
-        app.UseInfrastructure(); // ExceptionHandler, Migrations, etc.
-        app.UsePresentation();    // Controllers, Auth, etc.
+        //app.UseInfrastructure(); // ExceptionHandler, Migrations, etc.
+        //app.UsePresentation();    // Controllers, Auth, etc.
 
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
         logger.LogInformation("Normal logger: Application has started successfully.");
@@ -47,7 +47,7 @@ public class Program
         app.MapDefaultEndpoints();
 
         // OWN MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR
-        app.MapGet("/examples/{exampleInput}", async(
+        app.MapGet("/examples/{exampleInput}", async (
             string exampleInput,
             IRequestHandler<ExampleRequest, string> handler,
             CancellationToken cancellationToken) =>
@@ -57,8 +57,8 @@ public class Program
             return response is not null ? Results.Ok(response) : Results.NotFound();
         })
             .WithName("GetExample")
-            .WithTags("Examples")
-            .WithOpenApi();
+            .WithTags("Examples");
+            //.WithOpenApi();
         // END OWN MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR MEDIATOR
 
 
@@ -81,9 +81,9 @@ public class Program
 
     private static void InitializeBootstrapLogger()
     {
-        Log.Logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .CreateBootstrapLogger();
+        //Log.Logger = new LoggerConfiguration()
+        //    .WriteTo.Console()
+        //    .CreateBootstrapLogger();
     }
 }
 

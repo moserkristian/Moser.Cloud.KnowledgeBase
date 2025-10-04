@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿/*using System.Diagnostics;
 
 namespace Example.Application.Common.Behaviors;
 
@@ -30,4 +30,4 @@ public class PerformanceBehavior<TRequest, TResponse>(ILoggerFactory logger) : I
 
         return response;
     }
-}
+}*/

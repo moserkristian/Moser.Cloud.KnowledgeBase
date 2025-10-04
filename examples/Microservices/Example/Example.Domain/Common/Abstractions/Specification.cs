@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using Example.Domain.Common.Specifications;
 
 namespace Example.Domain.Common.Abstractions;
 
@@ -25,3 +26,4 @@ public abstract class Specification<T>
     {
         return new NotSpecification<T>(this);
     }
+}

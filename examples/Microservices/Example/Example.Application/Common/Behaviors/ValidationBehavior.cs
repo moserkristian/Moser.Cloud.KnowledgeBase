@@ -1,4 +1,4 @@
-﻿using MediatR;
+﻿/*using MediatR;
 using FluentValidation;
 using Example.Domain.Common.Exceptions;
 
@@ -54,3 +54,4 @@ public class ValidationBehavior<TRequest, TResponse>
         return await next();
     }
 }
+*/

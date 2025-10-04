@@ -1,4 +1,4 @@
-﻿using MediatR;
+﻿/*using MediatR;
 using System.Diagnostics;
 using Example.Application.Common.Persistence;
 
@@ -31,4 +31,4 @@ public class TransactionBehavior<TRequest, TResponse> : IPipelineBehavior<TReque
             return response;
         }, cancellationToken);
     }
-}
+}*/

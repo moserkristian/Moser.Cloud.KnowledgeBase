@@ -1,4 +1,4 @@
-﻿using Example.Application.Common.Interfaces;
+﻿/*using Example.Application.Common.Interfaces;
 
 namespace Example.Infrastructure.Persistence;
 
@@ -15,4 +15,4 @@ public class UnitOfWork : IUnitOfWork
     {
         return _context.ExecuteTransactionAsync(operation, cancellationToken);
     }
-}
+}*/

@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-using Example.Application.Common.Behaviors;
+//using Example.Application.Common.Behaviors;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Example.Application.Shared.Extensions;
@@ -9,7 +9,7 @@ public static class ApplicationServiceCollectionExtensions
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         // Registrácia CQRS handlerov (napr. CommandHandler, QueryHandler)
-        services.Scan(scan => scan
+        /*services..Scan(scan => scan
             .FromAssemblyOf<ApplicationServiceCollectionExtensions>()
             .AddClasses(classes => classes.AssignableTo(typeof(IRequestHandler<,>)))
             .AsImplementedInterfaces()
@@ -21,7 +21,7 @@ public static class ApplicationServiceCollectionExtensions
             .AddClasses(classes => classes.AssignableTo(typeof(IValidator<>)))
             .AsImplementedInterfaces()
             .WithScopedLifetime());
-
+        */
         // Registrácia ďalších služieb aplikácie
         // services.AddScoped<IUserService, UserService>();
         // services.AddScoped<IRoleService, RoleService>();
