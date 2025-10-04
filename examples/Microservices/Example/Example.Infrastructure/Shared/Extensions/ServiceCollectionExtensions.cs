@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Example.Infrastructure.Shared.Extensions;
 
-public static class InfrastructureServiceCollectionExtension
+public static class ServiceCollectionExtension
 {
     public static InfrastructureServiceCollectionExtensions InfrastructureServices(
         this IServiceCollection services)

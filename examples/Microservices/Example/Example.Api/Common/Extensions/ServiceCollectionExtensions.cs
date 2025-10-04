@@ -3,21 +3,21 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Example.Api.Common.Extensions;
 
-public static class ApiServiceCollectionExtension
+public static class ServiceCollectionExtension
 {
     public static PresentationServiceCollectionExtensions ApiServices(
         this IServiceCollection services)
         => new PresentationServiceCollectionExtensions(services);
 }
 
-public class PresentationServiceCollectionExtensions
+public class ServiceCollectionExtensions
 {
     private readonly IServiceCollection _services;
-    public PresentationServiceCollectionExtensions(IServiceCollection services)
+    public ServiceCollectionExtensions(IServiceCollection services)
     {
         _services = services;
     }
-
+    
     public IServiceCollection AddApplicationInsightsTelemetry(string? instrumentationKey)
     {
         return _services.AddApplicationInsightsTelemetry(options =>
