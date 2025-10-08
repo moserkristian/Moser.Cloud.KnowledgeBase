@@ -13,4 +13,6 @@ builder.AddProject<Projects.Web>("webfrontend")
     .WithReference(identityApi)
     .WaitFor(identityApi);
 
+builder.AddProject<Projects.Catalog_API>("catalog-api");
+
 builder.Build().Run();
