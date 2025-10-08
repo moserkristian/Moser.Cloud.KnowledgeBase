@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="CQRS\" />
     <Folder Include="Domain\" />
     <Folder Include="EventBus\" />
   </ItemGroup>
