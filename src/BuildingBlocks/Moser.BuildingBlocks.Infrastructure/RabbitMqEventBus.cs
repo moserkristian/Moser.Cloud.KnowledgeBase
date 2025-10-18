@@ -4,9 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BuildingBlocks.Host.Extensions
+namespace Moser.BuildingBlocks.Infrastructure;
+internal class RabbitMqEventBus
 {
-    internal class WebApiExtensions
-    {
-    }
 }

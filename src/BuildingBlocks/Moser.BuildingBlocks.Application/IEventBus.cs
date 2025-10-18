@@ -4,9 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BuildingBlocks.Infrastructure.CQRS
+namespace Moser.BuildingBlocks.Application;
+internal interface IEventBus
 {
-    internal class Mediator
-    {
-    }
 }
