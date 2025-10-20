@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Moser.BuildingBlocks.Infrastructure;
-internal class RabbitMqEventBus
+namespace Moser.BuildingBlocks.Application.Behaviors;
+
+internal class ValidationBehavior
 {
 }

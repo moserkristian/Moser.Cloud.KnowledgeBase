@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Moser.BuildingBlocks.Application;
-internal interface IQuery
+namespace Moser.BuildingBlocks.Application.CQRS;
+
+internal interface IQueryBus
 {
 }

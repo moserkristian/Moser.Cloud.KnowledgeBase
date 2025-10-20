@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Moser.BuildingBlocks.Application;
-internal interface IEventBus
+namespace Moser.BuildingBlocks.Infrastructure.Outbox;
+
+internal class OutboxDispatcher
 {
 }

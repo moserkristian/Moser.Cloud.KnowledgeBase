@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Moser.BuildingBlocks.Application;
-internal interface ICommand
+namespace Moser.BuildingBlocks.Infrastructure.EventBus;
+internal class RabbitMqEventBus
 {
 }

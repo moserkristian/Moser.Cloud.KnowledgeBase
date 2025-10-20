@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Moser.BuildingBlocks.Infrastructure;
-internal class InMemoryEventBus
+namespace Moser.BuildingBlocks.Application.Events;
+
+internal interface IIntegrationEventHandler
 {
 }
