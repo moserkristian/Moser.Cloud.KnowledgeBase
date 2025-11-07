@@ -1,12 +1,12 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.13.35825.156
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11201.2 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppHost", "src\Orchestration\AppHost\AppHost.csproj", "{C0B18EBB-E32E-4348-B5F7-ADC08BFA12F9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceDefaults", "src\Orchestration\ServiceDefaults\ServiceDefaults.csproj", "{12DB1232-0813-C7DE-7B3F-AE71DAFA506F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Web", "src\Web\Web\Web.csproj", "{6345095E-97C9-D31F-3FCD-BCB9511292AF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Web", "src\Web\Web.csproj", "{6345095E-97C9-D31F-3FCD-BCB9511292AF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "tests\Tests\Tests.csproj", "{92D29AAC-153D-941B-BDB8-3434C8E4C662}"
 EndProject
@@ -15,6 +15,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{3898CD42-E8B5-4F88-8BD7-DC0FC8B27011}"
 	ProjectSection(SolutionItems) = preProject
 		docs\EventTimestampGuidlinesISO20022.md = docs\EventTimestampGuidlinesISO20022.md
+		docs\TechnologiesToImplement.md = docs\TechnologiesToImplement.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{DBF258AA-21CA-4546-97F3-1466A61A018A}"
@@ -83,7 +84,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{EA1D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{CBFC0D9C-E79F-4B38-AD82-51F257D7CA64}"
 	ProjectSection(SolutionItems) = preProject
-		build-and-test.yml = build-and-test.yml
+		.github\workflows\build-and-test.yml = .github\workflows\build-and-test.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DomainDrivenDesign", "DomainDrivenDesign", "{ACFD8820-65A4-4720-A8DB-CB7F00250C96}"

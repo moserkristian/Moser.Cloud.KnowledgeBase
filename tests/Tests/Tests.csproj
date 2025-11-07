@@ -19,7 +19,7 @@
 
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Shared\AppHost\AppHost.csproj" />
+    <ProjectReference Include="..\..\src\Orchestration\AppHost\AppHost.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -12,10 +12,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\examples\Microservices\Example\Example.Api\Example.Presentation.csproj" />
-    <ProjectReference Include="..\..\Microservices\Catalog\Catalog.API\Catalog.API.csproj" />
-    <ProjectReference Include="..\..\Microservices\Identity\Identity.Api\Identity.Presentation.csproj" />
-    <ProjectReference Include="..\..\Presentations\Web\Web.csproj" />
+    <ProjectReference Include="..\..\..\templates\Services\Example\Example.API\Example.API.csproj" />
+    <ProjectReference Include="..\..\Services\Catalog\Catalog.API\Catalog.API.csproj" />
+    <ProjectReference Include="..\..\Web\Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>

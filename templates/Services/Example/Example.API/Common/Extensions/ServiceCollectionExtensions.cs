@@ -5,9 +5,9 @@ namespace Example.Api.Common.Extensions;
 
 public static class ServiceCollectionExtension
 {
-    public static PresentationServiceCollectionExtensions ApiServices(
+    public static ServiceCollectionExtensions ApiServices(
         this IServiceCollection services)
-        => new PresentationServiceCollectionExtensions(services);
+        => new ServiceCollectionExtensions(services);
 }
 
 public class ServiceCollectionExtensions

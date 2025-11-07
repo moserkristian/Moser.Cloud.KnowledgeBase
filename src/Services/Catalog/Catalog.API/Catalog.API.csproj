@@ -12,7 +12,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.19" NoWarn="NU1605" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.19" NoWarn="NU1605" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="3.8.1" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="4.0.0" />
     <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="3.2.0" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="3.8.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
@@ -20,12 +20,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Shared\ServiceDefaults\ServiceDefaults.csproj" />
+    <Folder Include="GraphQL\" />
+    <Folder Include="gRPC\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="GraphQL\" />
-    <Folder Include="gRPC\" />
+    <ProjectReference Include="..\..\..\Orchestration\ServiceDefaults\ServiceDefaults.csproj" />
   </ItemGroup>
 
 </Project>
