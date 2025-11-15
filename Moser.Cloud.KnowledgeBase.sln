@@ -24,35 +24,35 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Web", "Web", "{5AAC7D1F-A52D-4F59-AE47-06D6080C1CCE}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{9A523127-44F9-4A8D-9807-F18530625291}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microservices", "Microservices", "{9A523127-44F9-4A8D-9807-F18530625291}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Orchestration", "Orchestration", "{3409F188-87E8-4A4E-9D87-3ADBABAD2902}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{664C146D-ACD0-4BAF-BEF1-F128C9218FAC}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Microservices", "Microservices", "{664C146D-ACD0-4BAF-BEF1-F128C9218FAC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.API", "templates\Services\Example\Example.API\Example.API.csproj", "{4D13EF7C-C6AE-3A17-DE2B-112DA7D4E418}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.API", "templates\Microservices\Example\Example.API\Example.API.csproj", "{4D13EF7C-C6AE-3A17-DE2B-112DA7D4E418}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Example", "Example", "{A4F97736-77FD-422A-B97E-A1EE833DE5C5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Domain", "templates\Services\Example\Example.Domain\Example.Domain.csproj", "{F2B2E154-BC4A-440B-B652-24CA1ED306C8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Domain", "templates\Microservices\Example\Example.Domain\Example.Domain.csproj", "{F2B2E154-BC4A-440B-B652-24CA1ED306C8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Infrastructure", "templates\Services\Example\Example.Infrastructure\Example.Infrastructure.csproj", "{DC6CC5D2-12B3-4363-8C8E-12C335122E56}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Infrastructure", "templates\Microservices\Example\Example.Infrastructure\Example.Infrastructure.csproj", "{DC6CC5D2-12B3-4363-8C8E-12C335122E56}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Application", "templates\Services\Example\Example.Application\Example.Application.csproj", "{290B74E4-BABD-4732-A5EE-5995B94E135D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Application", "templates\Microservices\Example\Example.Application\Example.Application.csproj", "{290B74E4-BABD-4732-A5EE-5995B94E135D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildingBlocks", "BuildingBlocks", "{3E7292B7-391C-4517-AA3A-C234E1D04C67}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Catalog", "Catalog", "{5EB9A260-62CA-426A-9698-0940377E79FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalog.API", "src\Services\Catalog\Catalog.API\Catalog.API.csproj", "{99E68B27-E178-A6DB-C5CF-DD37DFDC3DC2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalog.API", "src\Microservices\Catalog\Catalog.API\Catalog.API.csproj", "{99E68B27-E178-A6DB-C5CF-DD37DFDC3DC2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalog.Domain", "src\Services\Catalog\Catalog.Domain\Catalog.Domain.csproj", "{116344E1-CEE3-49A6-B1DB-8BA5045DBF4E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalog.Domain", "src\Microservices\Catalog\Catalog.Domain\Catalog.Domain.csproj", "{116344E1-CEE3-49A6-B1DB-8BA5045DBF4E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalog.Application", "src\Services\Catalog\Catalog.Application\Catalog.Application.csproj", "{45942591-0078-47EC-ACAC-27119DD59355}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalog.Application", "src\Microservices\Catalog\Catalog.Application\Catalog.Application.csproj", "{45942591-0078-47EC-ACAC-27119DD59355}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalog.Infrastructure", "src\Services\Catalog\Catalog.Infrastructure\Catalog.Infrastructure.csproj", "{612D2535-FB55-4D99-B933-70F14BD5C471}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalog.Infrastructure", "src\Microservices\Catalog\Catalog.Infrastructure\Catalog.Infrastructure.csproj", "{612D2535-FB55-4D99-B933-70F14BD5C471}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalog.Tests", "src\Services\Catalog\Catalog.Tests\Catalog.Tests.csproj", "{34FCEC79-8A1B-43A8-A97A-E0D419F736C1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalog.Tests", "src\Microservices\Catalog\Catalog.Tests\Catalog.Tests.csproj", "{34FCEC79-8A1B-43A8-A97A-E0D419F736C1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Ordering", "Ordering", "{F21BF07A-5750-4D0E-B873-1F09A8C31505}"
 EndProject
@@ -85,7 +85,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{EA1D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{CBFC0D9C-E79F-4B38-AD82-51F257D7CA64}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\build-and-test.yml = .github\workflows\build-and-test.yml
+		.github\workflows\build-test-deploy.yml = .github\workflows\build-test-deploy.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DomainDrivenDesign", "DomainDrivenDesign", "{ACFD8820-65A4-4720-A8DB-CB7F00250C96}"

@@ -1,0 +1,131 @@
+name: Build, Test and Deploy
+
+on:
+  push:
+    branches: [main, develop]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+          cache: true 
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test --no-build --configuration Release --verbosity normal
+
+  docker-build:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      packages: write
+    
+    strategy:
+      matrix:
+        service: [Catalog, Identity, Ordering, Payment]
+    
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and Push Docker Image
+        run: |
+          SERVICE_LOWER=$(echo "${{ matrix.service }}" | tr '[:upper:]' '[:lower:]')
+          
+          echo "Building ${SERVICE_LOWER}-api..."
+          
+          docker build \
+            --build-arg DOTNET_VERSION=10.0 \
+            --build-arg SERVICE_NAME=${{ matrix.service }} \
+            -t ghcr.io/${{ env.IMAGE_PREFIX }}/${SERVICE_LOWER}-api:${{ github.sha }} \
+            -t ghcr.io/${{ env.IMAGE_PREFIX }}/${SERVICE_LOWER}-api:latest \
+            -f src/Services/${{ matrix.service }}/${{ matrix.service }}.API/Dockerfile \
+            .
+          
+          echo "Pushing ${SERVICE_LOWER}-api..."
+          docker push ghcr.io/${{ env.IMAGE_PREFIX }}/${SERVICE_LOWER}-api:${{ github.sha }}
+          docker push ghcr.io/${{ env.IMAGE_PREFIX }}/${SERVICE_LOWER}-api:latest
+
+  deploy:
+    needs: docker-build
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        service: [Catalog, Identity, Ordering, Payment]
+    
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      
+      - name: Deploy to Azure Container Apps
+        run: |
+          SERVICE_LOWER=$(echo "${{ matrix.service }}" | tr '[:upper:]' '[:lower:]')
+          
+          if az containerapp show \
+              --name ${SERVICE_LOWER}-api \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              &>/dev/null; then
+            
+            echo "🔄 Updating ${SERVICE_LOWER}-api..."
+            az containerapp update \
+              --name ${SERVICE_LOWER}-api \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --image ghcr.io/${{ env.IMAGE_PREFIX }}/${SERVICE_LOWER}-api:latest
+            
+          else
+            echo "🆕 Creating ${SERVICE_LOWER}-api..."
+            az containerapp create \
+              --name ${SERVICE_LOWER}-api \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --environment ${{ secrets.AZURE_CONTAINER_ENV }} \
+              --image ghcr.io/${{ env.IMAGE_PREFIX }}/${SERVICE_LOWER}-api:latest \
+              --target-port 8080 \
+              --ingress external \
+              --min-replicas 0 \
+              --max-replicas 3 \
+              --cpu 0.25 \
+              --memory 0.5Gi \
+              --registry-server ghcr.io \
+              --registry-username ${{ github.actor }} \
+              --registry-password ${{ secrets.GITHUB_TOKEN }}
+          fi
+      
+      - name: Get Application URL
+        run: |
+          SERVICE_LOWER=$(echo "${{ matrix.service }}" | tr '[:upper:]' '[:lower:]')
+          
+          FQDN=$(az containerapp show \
+            --name ${SERVICE_LOWER}-api \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --query "properties.configuration.ingress.fqdn" \
+            -o tsv)
+          
+          echo "${{ matrix.service }} API: https://${FQDN}"
