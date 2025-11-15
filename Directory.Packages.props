@@ -1,0 +1,12 @@
+<Project>
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  
+  <ItemGroup Label="">
+    <!-- <PackageVersion Include="Nuget.Package.Name" Version="0.0.0" /> -->
+      <!-- => in .csproj: <PackageReference Include="Nuget.Package.Name" /> -->
+  </ItemGroup>
+
+</Project>
