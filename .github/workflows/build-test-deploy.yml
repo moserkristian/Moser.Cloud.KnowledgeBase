@@ -22,7 +22,7 @@ jobs:
           cache: false 
 
       - name: Restore dependencies
-        run: dotnet restore --verbosity:detailed
+        run: dotnet restore
 
       - name: Build
         run: dotnet build --no-restore --configuration Release
