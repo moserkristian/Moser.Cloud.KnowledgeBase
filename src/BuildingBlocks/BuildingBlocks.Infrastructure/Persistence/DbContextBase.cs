@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Archetype.BuildingBlocks.Infrastructure.Persistence;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Infrastructure.Persistence;
 
 public abstract class DbContextBase : DbContext
 {

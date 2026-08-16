@@ -1,9 +1,9 @@
-using Moser.Archetype.BuildingBlocks.Application.CQRS;
+using Moser.Enterprise.Blueprint.BuildingBlocks.Application.CQRS;
 
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Archetype.BuildingBlocks.Application;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Application;
 
 public interface IQueryHandler<in TQuery, TResult> where TQuery : IQuery<TResult>
 {

@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Moser.Archetype.Tests;
+namespace Moser.Enterprise.Blueprint.Tests;
 
 public class WebTests
 {/*

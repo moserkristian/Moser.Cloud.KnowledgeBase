@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Moser.Archetype.Tests;
+namespace Moser.Enterprise.Blueprint.Tests;
 
 [Collection("DistributedAppTestCollection")]
 public class AspireOrchestratedTests(DistributedAppTestFixture fixture)

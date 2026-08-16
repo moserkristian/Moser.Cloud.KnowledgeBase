@@ -1,4 +1,4 @@
-namespace Moser.Archetype.BuildingBlocks.Infrastructure.Outbox;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Infrastructure.Outbox;
 
 internal class OutboxDispatcher
 {

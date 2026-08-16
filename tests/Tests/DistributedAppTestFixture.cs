@@ -9,11 +9,11 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-using AppHost = Moser.Archetype.AppHost;
+using AppHost = Moser.Enterprise.Blueprint.AppHost;
 
 [assembly: CollectionBehavior(DisableTestParallelization = false)]
 
-namespace Moser.Archetype.Tests;
+namespace Moser.Enterprise.Blueprint.Tests;
 
 [Collection("DistributedAppTestCollection")]
 public class DistributedAppTestFixture : IAsyncLifetime

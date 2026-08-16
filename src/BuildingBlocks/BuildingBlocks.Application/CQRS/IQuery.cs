@@ -1,3 +1,3 @@
-namespace Moser.Archetype.BuildingBlocks.Application.CQRS;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Application.CQRS;
 
 public interface IQuery<out TResult> { }

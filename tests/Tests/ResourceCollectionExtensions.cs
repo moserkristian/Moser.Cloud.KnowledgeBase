@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace Moser.Archetype.Tests;
+namespace Moser.Enterprise.Blueprint.Tests;
 
 internal static class ResourceCollectionExtensions
 {

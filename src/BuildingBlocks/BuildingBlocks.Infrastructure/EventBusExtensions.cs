@@ -1,13 +1,13 @@
-using Moser.Archetype.BuildingBlocks.Application.Events;
-using Moser.Archetype.BuildingBlocks.Infrastructure.EventBus;
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+
+using Moser.Enterprise.Blueprint.BuildingBlocks.Application.Events;
+using Moser.Enterprise.Blueprint.BuildingBlocks.Infrastructure.EventBus;
 
 using System.Linq;
 using System.Reflection;
 
-namespace Moser.Archetype.BuildingBlocks.Infrastructure;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Infrastructure;
 
 public static class EventBusExtensions
 {

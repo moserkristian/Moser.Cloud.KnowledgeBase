@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 
-using Moser.Archetype.BuildingBlocks.Application;
+using Moser.Enterprise.Blueprint.BuildingBlocks.Application;
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Archetype.BuildingBlocks.Infrastructure.Persistence;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Infrastructure.Persistence;
 
 public abstract class UnitOfWorkBase<TContext> : IUnitOfWork
     where TContext : DbContextBase

@@ -1,6 +1,9 @@
-namespace Moser.Archetype.BuildingBlocks.Domain;
+using System;
 
-internal interface IDomainEvent
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Domain;
+
+public interface IDomainEvent
 {
-
+    Guid EventId { get; }
+    DateTime OccurredOn { get; }
 }

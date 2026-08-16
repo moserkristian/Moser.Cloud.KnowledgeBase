@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>Moser.Archetype.BuildingBlocks.API</RootNamespace>
+    <RootNamespace>Moser.Enterprise.Blueprint.BuildingBlocks.API</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

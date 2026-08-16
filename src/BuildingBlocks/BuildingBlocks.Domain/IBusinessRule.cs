@@ -1,6 +1,7 @@
-namespace Moser.Archetype.BuildingBlocks.Domain;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Domain;
 
-internal interface IBusinessRule
+public interface IBusinessRule
 {
-
+    string Message { get; }
+    bool IsBroken();
 }

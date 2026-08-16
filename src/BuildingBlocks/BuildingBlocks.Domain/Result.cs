@@ -1,4 +1,4 @@
-namespace Moser.Archetype.BuildingBlocks.Domain;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Domain;
 
 public class Result
 {

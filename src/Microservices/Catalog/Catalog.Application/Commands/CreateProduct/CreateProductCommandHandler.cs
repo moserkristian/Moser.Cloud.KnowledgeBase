@@ -1,4 +1,4 @@
-namespace Moser.Archetype.Catalog.Application.Commands.CreateProduct;
+namespace Moser.Enterprise.Blueprint.Catalog.Application.Commands.CreateProduct;
 
 internal class CreateProductCommandHandler
 {

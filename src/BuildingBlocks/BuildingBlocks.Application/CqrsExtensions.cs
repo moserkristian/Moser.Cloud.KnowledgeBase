@@ -1,11 +1,11 @@
-using Moser.Archetype.BuildingBlocks.Application.CQRS;
-
 using Microsoft.Extensions.DependencyInjection;
+
+using Moser.Enterprise.Blueprint.BuildingBlocks.Application.CQRS;
 
 using System.Linq;
 using System.Reflection;
 
-namespace Moser.Archetype.BuildingBlocks.Application;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Application;
 
 public static class CqrsExtensions
 {

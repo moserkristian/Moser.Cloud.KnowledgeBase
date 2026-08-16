@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Moser.Archetype.BuildingBlocks.Domain;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Domain;
 
 internal interface IRepository<TAggregate, TId>
     where TAggregate : IAggregateRoot

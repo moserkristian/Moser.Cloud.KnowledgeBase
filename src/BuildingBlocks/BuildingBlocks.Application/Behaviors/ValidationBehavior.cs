@@ -1,4 +1,4 @@
-namespace Moser.Archetype.BuildingBlocks.Application.Behaviors;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Application.Behaviors;
 
 internal class ValidationBehavior
 {

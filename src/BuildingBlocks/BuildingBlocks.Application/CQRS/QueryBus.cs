@@ -4,7 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Archetype.BuildingBlocks.Application.CQRS;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Application.CQRS;
 
 internal sealed class QueryBus : IQueryBus
 {

@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Archetype.BuildingBlocks.Application;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Application;
 
 public interface IUnitOfWork
 {

@@ -1,4 +1,4 @@
-using Moser.Archetype.Web;
+using Moser.Enterprise.Blueprint.Web;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;

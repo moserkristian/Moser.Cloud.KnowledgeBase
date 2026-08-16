@@ -1,4 +1,4 @@
-namespace Moser.Archetype.Tests;
+namespace Moser.Enterprise.Blueprint.Tests;
 
 [CollectionDefinition("DistributedAppTestCollection")]
 public class DistributedAppTestCollection : ICollectionFixture<DistributedAppTestFixture>

@@ -1,9 +1,9 @@
-using Moser.Archetype.Catalog.Infrastructure;
-
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 
-namespace Moser.Archetype.AppHost;
+using Moser.Enterprise.Blueprint.Catalog.Infrastructure;
+
+namespace Moser.Enterprise.Blueprint.AppHost;
 
 public static class Program
 {

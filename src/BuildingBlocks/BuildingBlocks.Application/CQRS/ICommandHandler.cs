@@ -1,9 +1,9 @@
-using Moser.Archetype.BuildingBlocks.Application.CQRS;
+using Moser.Enterprise.Blueprint.BuildingBlocks.Application.CQRS;
 
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Archetype.BuildingBlocks.Application;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Application;
 
 public interface ICommandHandler<in TCommand> where TCommand : ICommand
 {

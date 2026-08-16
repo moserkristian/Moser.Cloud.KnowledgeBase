@@ -5,7 +5,7 @@ on:
     branches: [main, develop]
 
 env:
-  IMAGE_PREFIX: ${{ github.repository_owner }}/moser-archetype
+  IMAGE_PREFIX: ${{ github.repository_owner }}/moser-enterprise-blueprint
 
 jobs:
   build-and-test:
@@ -16,13 +16,13 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-          cache: false 
+          cache: false
 
       - name: Restore dependencies
         run: dotnet restore
@@ -39,11 +39,11 @@ jobs:
   docker-build:
     needs: build-and-test
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: read
       packages: write
-    
+
     strategy:
       matrix:
         include:
@@ -53,22 +53,22 @@ jobs:
           - service: Web
             type: web
             path: src/Web
-    
+
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
-      
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
-      
+
       - name: Build and Push Docker Image
         run: |
           SERVICE_LOWER=$(echo "${{ matrix.service }}" | tr '[:upper:]' '[:lower:]')
-          
+
           if [ "${{ matrix.type }}" = "api" ]; then
             IMAGE_NAME="${SERVICE_LOWER}-api"
             DOCKERFILE="src/Microservices/${{ matrix.service }}/${{ matrix.service }}.API/Dockerfile"
@@ -76,16 +76,16 @@ jobs:
             IMAGE_NAME="${SERVICE_LOWER}"
             DOCKERFILE="src/Web/Dockerfile"
           fi
-          
+
           echo "Building ${IMAGE_NAME}..."
-          
+
           docker build \
             --build-arg SERVICE_NAME=${{ matrix.service }} \
             -t ghcr.io/${{ env.IMAGE_PREFIX }}/${IMAGE_NAME}:${{ github.sha }} \
             -t ghcr.io/${{ env.IMAGE_PREFIX }}/${IMAGE_NAME}:latest \
             -f ${DOCKERFILE} \
             .
-          
+
           echo "Pushing ${IMAGE_NAME}..."
           docker push ghcr.io/${{ env.IMAGE_PREFIX }}/${IMAGE_NAME}:${{ github.sha }}
           docker push ghcr.io/${{ env.IMAGE_PREFIX }}/${IMAGE_NAME}:latest
@@ -93,7 +93,7 @@ jobs:
   deploy:
     needs: docker-build
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         include:
@@ -103,23 +103,23 @@ jobs:
           - service: Web
             type: web
             port: 8080
-    
+
     steps:
       - name: Login to Azure
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-      
+
       - name: Deploy to Azure Container Apps
         run: |
           SERVICE_LOWER=$(echo "${{ matrix.service }}" | tr '[:upper:]' '[:lower:]')
-          
+
           if [ "${{ matrix.type }}" = "api" ]; then
             APP_NAME="${SERVICE_LOWER}-api"
           else
             APP_NAME="${SERVICE_LOWER}"
           fi
-          
+
           # Get Catalog API FQDN for Web app
           if [ "${{ matrix.type }}" = "web" ]; then
             CATALOG_FQDN=$(az containerapp show \
@@ -127,7 +127,7 @@ jobs:
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
               --query "properties.configuration.ingress.fqdn" \
               -o tsv 2>/dev/null || echo "")
-            
+
             if [ -n "$CATALOG_FQDN" ]; then
               ENV_VARS="CatalogApi__BaseUrl=https://${CATALOG_FQDN}"
             else
@@ -137,12 +137,12 @@ jobs:
           else
             ENV_VARS=""
           fi
-          
+
           if az containerapp show \
               --name ${APP_NAME} \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
               &>/dev/null; then
-            
+
             echo "🔄 Updating ${APP_NAME}..."
 
             az containerapp registry set \
@@ -164,10 +164,10 @@ jobs:
                 --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
                 --image ghcr.io/${{ env.IMAGE_PREFIX }}/${APP_NAME}:latest
             fi
-            
+
           else
             echo "🆕 Creating ${APP_NAME}..."
-            
+
             if [ -n "$ENV_VARS" ]; then
               az containerapp create \
                 --name ${APP_NAME} \
@@ -201,21 +201,21 @@ jobs:
                 --registry-password ${{ secrets.GHCR_TOKEN }}
             fi
           fi
-      
+
       - name: Get Application URL
         run: |
           SERVICE_LOWER=$(echo "${{ matrix.service }}" | tr '[:upper:]' '[:lower:]')
-          
+
           if [ "${{ matrix.type }}" = "api" ]; then
             APP_NAME="${SERVICE_LOWER}-api"
           else
             APP_NAME="${SERVICE_LOWER}"
           fi
-          
+
           FQDN=$(az containerapp show \
             --name ${APP_NAME} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
             --query "properties.configuration.ingress.fqdn" \
             -o tsv)
-          
+
           echo "${{ matrix.service }}: https://${FQDN}"

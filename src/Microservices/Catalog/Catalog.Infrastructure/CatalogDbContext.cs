@@ -1,10 +1,9 @@
-using Moser.Archetype.Catalog.Domain.AggregatesModel.ProductAggregate;
-
 using Microsoft.EntityFrameworkCore;
 
-using Moser.Archetype.BuildingBlocks.Infrastructure.Persistence;
+using Moser.Enterprise.Blueprint.BuildingBlocks.Infrastructure.Persistence;
+using Moser.Enterprise.Blueprint.Catalog.Domain.AggregatesModel.ProductAggregate;
 
-namespace Moser.Archetype.Catalog.Infrastructure;
+namespace Moser.Enterprise.Blueprint.Catalog.Infrastructure;
 
 internal class CatalogDbContext : DbContextBase
 {

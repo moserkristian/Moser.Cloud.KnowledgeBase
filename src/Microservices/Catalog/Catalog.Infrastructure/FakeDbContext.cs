@@ -1,4 +1,4 @@
-namespace Moser.Archetype.Catalog.Infrastructure;
+namespace Moser.Enterprise.Blueprint.Catalog.Infrastructure;
 
 public class FakeDbContext
 {

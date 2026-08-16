@@ -1,6 +1,3 @@
-namespace Moser.Archetype.BuildingBlocks.Domain;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Domain;
 
-internal interface IAggregateRoot
-{
-
-}
+public interface IAggregateRoot { }

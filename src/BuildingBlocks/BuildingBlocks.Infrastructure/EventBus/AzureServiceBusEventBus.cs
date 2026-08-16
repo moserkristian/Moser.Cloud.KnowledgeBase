@@ -1,12 +1,12 @@
-using Moser.Archetype.BuildingBlocks.Application.Events;
-
 using Azure.Messaging.ServiceBus;
+
+using Moser.Enterprise.Blueprint.BuildingBlocks.Application.Events;
 
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Archetype.BuildingBlocks.Infrastructure.EventBus;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Infrastructure.EventBus;
 
 public sealed class AzureServiceBusEventBus : IEventBus
 {

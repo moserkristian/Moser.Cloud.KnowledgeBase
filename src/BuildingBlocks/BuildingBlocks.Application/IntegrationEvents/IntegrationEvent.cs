@@ -1,8 +1,8 @@
-using Moser.Archetype.BuildingBlocks.Application.Events;
+using Moser.Enterprise.Blueprint.BuildingBlocks.Application.Events;
 
 using System;
 
-namespace Moser.Archetype.BuildingBlocks.Application.IntegrationEvents;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Application.IntegrationEvents;
 
 public abstract record IntegrationEvent : IIntegrationEvent
 {

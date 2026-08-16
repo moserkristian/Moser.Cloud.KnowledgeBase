@@ -1,6 +1,6 @@
 using System;
 
-namespace Moser.Archetype.BuildingBlocks.Application.Events;
+namespace Moser.Enterprise.Blueprint.BuildingBlocks.Application.Events;
 
 public interface IIntegrationEvent
 {

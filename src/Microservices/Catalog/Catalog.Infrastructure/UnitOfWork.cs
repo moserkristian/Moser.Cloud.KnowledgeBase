@@ -1,6 +1,6 @@
-using Moser.Archetype.BuildingBlocks.Infrastructure.Persistence;
+using Moser.Enterprise.Blueprint.BuildingBlocks.Infrastructure.Persistence;
 
-namespace Moser.Archetype.Catalog.Infrastructure;
+namespace Moser.Enterprise.Blueprint.Catalog.Infrastructure;
 
 internal class UnitOfWork : UnitOfWorkBase<CatalogDbContext>
 {

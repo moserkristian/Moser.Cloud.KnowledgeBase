@@ -4,7 +4,7 @@ using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Archetype.Web;
+namespace Moser.Enterprise.Blueprint.Web;
 
 public class CatalogApiClient(HttpClient httpClient)
 {

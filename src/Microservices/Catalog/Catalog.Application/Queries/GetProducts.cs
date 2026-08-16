@@ -1,4 +1,4 @@
-namespace Moser.Archetype.Catalog.Application.Queries;
+namespace Moser.Enterprise.Blueprint.Catalog.Application.Queries;
 
 internal class GetProducts
 {
