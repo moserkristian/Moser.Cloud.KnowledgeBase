@@ -11,6 +11,8 @@ public static class Program
     public const string PostgresDbName = "postgres-db";
     public const string CatalogApiName = "catalog-api";
     public const string WebFrontendName = "webfrontend";
+    public const string OllamaName = "ollama";
+    public const string OllamaUrl = "http://127.0.0.1:11434";
 
     static void Main(string[] args)
     {
@@ -20,12 +22,22 @@ public static class Program
 
         var catalogApi = builder.AddProject<Projects.Catalog_API>("catalog-api");
 
+        // Native Windows Ollama (binds 127.0.0.1:11434). Do not add a Docker/Aspire Ollama
+        // container — it would clash on 11434 with the installed app/service.
+        var ollama = builder.AddExternalService(OllamaName, OllamaUrl)
+            .WithHttpHealthCheck("/api/tags");
+
         builder.AddProject<Projects.Web>("webfrontend")
             .WithExternalHttpEndpoints()
             .WithReference(cache)
             .WaitFor(cache)
             .WithReference(catalogApi)
-            .WaitFor(catalogApi);
+            .WaitFor(catalogApi)
+            .WithReference(ollama)
+            .WaitFor(ollama)
+            .WithEnvironment("OLLAMA_ENDPOINT", OllamaUrl)
+            .WithEnvironment("OLLAMA_CHAT_MODEL", "llama3.2")
+            .WithEnvironment("OLLAMA_EMBED_MODEL", "nomic-embed-text");
 
         var app = builder.Build();
 

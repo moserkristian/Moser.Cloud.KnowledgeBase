@@ -1,0 +1,165 @@
+@page "/assistant/ask"
+@rendermode InteractiveServer
+@inject IAskQuestion Assistant
+@inject AssistantRuntimeInfo Runtime
+
+<PageTitle>Policy assistant</PageTitle>
+
+<section class="ask">
+    <header class="ask-head">
+        <p class="eyebrow">Knowledge</p>
+        <h1>Policy assistant</h1>
+        <p>
+            Odpoveď ide len z nájdených chunkov. Policy vrstva vie dať Deny aj keď model povie áno.
+            <a href="/rag-pipeline.html">Ukázať tok ingest → index → retrieve → generate → policy</a>
+        </p>
+        <p class="ask-meta">
+            <code>@Runtime.Provider</code>
+            · <code>@Runtime.Model</code>
+            · <code>@Runtime.EmbeddingModel</code>
+            @if (Runtime.IsStub)
+            {
+                <span> · stub (Ollama sa pri štarte nenašla)</span>
+            }
+            · <a href="/assistant/status">Stav</a>
+        </p>
+    </header>
+
+    <div class="ask-examples" role="group" aria-label="Example questions">
+        @foreach (var sample in Samples)
+        {
+            <button type="button" class="ask-chip" disabled="@busy" @onclick="() => UseSample(sample)">@sample</button>
+        }
+    </div>
+
+    <label class="ask-label" for="question">Otázka</label>
+    <textarea id="question" class="ask-input" rows="3" @bind="question" @bind:event="oninput"
+              @onkeydown="OnKey" disabled="@busy"
+              placeholder="Ctrl+Enter odošle."></textarea>
+
+    <div class="ask-actions">
+        <button type="button" class="btn btn-primary" @onclick="Submit" disabled="@busy">
+            @(busy ? "Hľadám…" : "Spýtať sa")
+        </button>
+    </div>
+
+    @if (error is not null)
+    {
+        <div class="ask-error" role="alert">@error</div>
+    }
+
+    @if (answer is not null)
+    {
+        <article class="ask-result @DecisionTone(answer)" aria-live="polite">
+            <div class="ask-status">
+                <span class="badge @DecisionBadge(answer.Decision)">@answer.Decision</span>
+                @if (answer.Refused)
+                {
+                    <span class="badge badge-primary">Refuse</span>
+                }
+                <span>@DecisionHint(answer)</span>
+            </div>
+
+            <h2>Odpoveď</h2>
+            <p class="ask-answer">@answer.Text</p>
+
+            <h2>Citácie @(answer.Citations.Count is 0 ? "" : $"({answer.Citations.Count})")</h2>
+            @if (answer.Citations.Count == 0)
+            {
+                <p class="ask-empty">Žiadne chunky — refuse alebo prázdny index.</p>
+            }
+            else
+            {
+                @foreach (var citation in answer.Citations)
+                {
+                    <details>
+                        <summary>@citation.Source</summary>
+                        <pre>@citation.Chunk</pre>
+                    </details>
+                }
+            }
+        </article>
+    }
+</section>
+
+@code {
+    private static readonly string[] Samples =
+    [
+        "What is the standard refund window?",
+        "How many PTO days do US employees get?",
+        "Can I share my API key with a vendor?",
+        "Is a cash gift from a supplier allowed?"
+    ];
+
+    private string question = "";
+    private Answer? answer;
+    private string? error;
+    private bool busy;
+
+    private Task UseSample(string sample)
+    {
+        question = sample;
+        return Submit();
+    }
+
+    private Task OnKey(KeyboardEventArgs e)
+        => e is { Key: "Enter", CtrlKey: true } ? Submit() : Task.CompletedTask;
+
+    private async Task Submit()
+    {
+        error = null;
+        answer = null;
+        if (string.IsNullOrWhiteSpace(question))
+        {
+            error = "Napíš otázku.";
+            return;
+        }
+
+        busy = true;
+        try
+        {
+            answer = await Assistant.Handle(new AskQuestion(question.Trim()));
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private static string DecisionBadge(PolicyDecision decision) => decision switch
+    {
+        PolicyDecision.Allow => "badge-success",
+        PolicyDecision.Deny => "badge-danger",
+        PolicyDecision.NeedsHuman => "badge-warning",
+        _ => "badge-primary"
+    };
+
+    private static string DecisionTone(Answer value)
+        => value.Refused ? "is-refuse" : value.Decision.ToString().ToLowerInvariant() switch
+        {
+            "allow" => "is-allow",
+            "deny" => "is-deny",
+            "needshuman" => "is-human",
+            _ => ""
+        };
+
+    private static string DecisionHint(Answer value)
+    {
+        if (value.Refused)
+        {
+            return "Málo policy kontextu.";
+        }
+
+        return value.Decision switch
+        {
+            PolicyDecision.Allow => "Podložené retrievanutými politikami.",
+            PolicyDecision.Deny => "Zablokované Policy vrstvou, nie modelom.",
+            PolicyDecision.NeedsHuman => "Konflikt zdrojov — rozhodne človek.",
+            _ => ""
+        };
+    }
+}

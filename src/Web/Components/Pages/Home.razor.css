@@ -1,0 +1,8 @@
+.home { max-width: 42rem; }
+
+.home h1 {
+    font-size: 1.6rem;
+    margin: 0.15rem 0 0.5rem;
+}
+
+.home p { color: var(--muted); margin: 0 0 0.75rem; }

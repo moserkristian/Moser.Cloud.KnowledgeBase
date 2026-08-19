@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 3
+    groups:
+      aspire:
+        patterns: ["Aspire.*"]
+      dotnet-runtime:
+        patterns:
+          - "Microsoft.AspNetCore.*"
+          - "Microsoft.EntityFrameworkCore*"
+          - "Microsoft.Extensions.Configuration"
+          - "Microsoft.Extensions.DependencyInjection.Abstractions"
+      dotnet-extensions:
+        patterns:
+          - "Microsoft.Extensions.Http.Resilience"
+          - "Microsoft.Extensions.ServiceDiscovery"
+          - "Microsoft.Extensions.AI*"
+          - "Microsoft.Extensions.VectorData.*"
+      identity-web:
+        patterns: ["Microsoft.Identity.Web*"]
+      opentelemetry:
+        patterns: ["OpenTelemetry*"]
+    labels:
+      - "dependencies"

@@ -1,0 +1,111 @@
+.ask {
+    max-width: 42rem;
+}
+
+.ask-head h1 {
+    font-size: 1.6rem;
+    margin: 0.15rem 0 0.4rem;
+}
+
+.eyebrow {
+    margin: 0;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.ask-head p {
+    color: var(--muted);
+    margin: 0 0 0.6rem;
+}
+
+.ask-meta {
+    font-size: 0.88rem;
+}
+
+.ask-examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 1rem 0;
+}
+
+.ask-chip {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 0.3rem 0.7rem;
+    font: inherit;
+    font-size: 0.82rem;
+    cursor: pointer;
+}
+
+.ask-chip:hover:not(:disabled) {
+    border-color: var(--ink);
+}
+
+.ask-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+}
+
+.ask-input {
+    width: 100%;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font: inherit;
+    background: var(--paper);
+    color: var(--ink);
+    resize: vertical;
+    min-height: 5.5rem;
+}
+
+.ask-actions { margin: 0.75rem 0 1.1rem; }
+.ask-error { color: var(--danger-600); margin-bottom: 1rem; }
+
+.ask-result {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1.1rem 1.2rem;
+}
+
+.ask-result.is-allow { border-left: 3px solid var(--success-500); }
+.ask-result.is-deny { border-left: 3px solid var(--danger-500); }
+.ask-result.is-human { border-left: 3px solid var(--warn); }
+.ask-result.is-refuse { border-left: 3px solid var(--gray-400); }
+
+.ask-result h2 {
+    font-size: 0.92rem;
+    margin: 1rem 0 0.4rem;
+}
+
+.ask-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.ask-answer { white-space: pre-wrap; }
+.ask-empty { color: var(--muted); }
+
+.ask-result details {
+    border-top: 1px solid var(--line);
+    padding: 0.55rem 0;
+}
+
+.ask-result summary { cursor: pointer; font-weight: 600; }
+
+.ask-result pre {
+    white-space: pre-wrap;
+    margin: 0.45rem 0 0;
+    font-size: 0.84rem;
+    color: var(--gray-700);
+}

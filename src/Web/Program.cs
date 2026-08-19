@@ -1,3 +1,4 @@
+using Moser.Enterprise.Blueprint.Assistant.Infrastructure;
 using Moser.Enterprise.Blueprint.Web;
 
 using Microsoft.AspNetCore.Builder;
@@ -12,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
 builder.AddRedisOutputCache("cache");
+builder.AddAssistant();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -35,11 +37,12 @@ var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Error"); //, createScopeForErrors: true);
+    app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
+app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();

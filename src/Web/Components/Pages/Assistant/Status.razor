@@ -1,0 +1,111 @@
+@page "/assistant/status"
+@rendermode InteractiveServer
+@inject IAssistantWorkspace Workspace
+@inject IJSRuntime JS
+
+<PageTitle>Stav</PageTitle>
+
+<section class="status">
+    <header class="status-head">
+        <p class="eyebrow">Knowledge</p>
+        <h1>Stav indexu</h1>
+        <p>Provider, model a počet chunkov v tomto procese Web. Pull modelov robí Ollama, nie táto stránka.</p>
+        <p>
+            <a href="/assistant/ask">Spýtať sa</a>
+            · <a href="/rag-pipeline.html">Ako to ide rúrou</a>
+        </p>
+    </header>
+
+    @if (error is not null)
+    {
+        <p class="status-error" role="alert">@error</p>
+    }
+
+    @if (status is null)
+    {
+        <p>Načítavam…</p>
+    }
+    else
+    {
+        @if (status.IsStub)
+        {
+            <p class="status-banner">
+                Beží <strong>stub</strong> — fejk namiesto Ollamy. Appka sa spustila, keď model nebol dostupný.
+                @if (status.LlmReachable)
+                {
+                    <span>Ollama už beží; reštartuj Web, aby sa pri štarte pripojil.</span>
+                }
+            </p>
+        }
+
+        <dl class="status-grid">
+            <dt>Provider</dt>
+            <dd>@status.Provider</dd>
+            <dt>Chat</dt>
+            <dd><code>@status.Model</code></dd>
+            <dt>Embedding</dt>
+            <dd><code>@status.EmbeddingModel</code></dd>
+            <dt>Ollama</dt>
+            <dd>@(status.LlmReachable ? "reachable" : "offline") @(status.LlmEndpoint)</dd>
+            <dt>Chunky</dt>
+            <dd>@status.ChunkCount</dd>
+            <dt>Posledný ingest</dt>
+            <dd>@(status.LastIngestUtc?.ToString("u") ?? "nikdy")</dd>
+        </dl>
+
+        <div class="status-actions">
+            <button type="button" class="btn btn-secondary" disabled="@busy" @onclick="Refresh">Obnoviť</button>
+            <button type="button" class="btn btn-secondary" disabled="@busy" @onclick="Reset">Znova načítať seed</button>
+        </div>
+    }
+</section>
+
+@code {
+    private AssistantStatus? status;
+    private string? error;
+    private bool busy;
+
+    protected override Task OnInitializedAsync() => Refresh();
+
+    private async Task Refresh()
+    {
+        error = null;
+        busy = true;
+        try
+        {
+            status = await Workspace.GetStatusAsync();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private async Task Reset()
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", "Vymazať in-memory index a znova načítať data/seed/policy?"))
+        {
+            return;
+        }
+
+        error = null;
+        busy = true;
+        try
+        {
+            await Workspace.ResetGeneratedDataAsync();
+            status = await Workspace.GetStatusAsync();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+}

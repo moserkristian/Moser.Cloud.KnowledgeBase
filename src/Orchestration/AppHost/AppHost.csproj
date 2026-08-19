@@ -1,12 +1,17 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <Sdk Name="Aspire.AppHost.Sdk" />
-
+  
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <IsAspireHost>true</IsAspireHost>
     <UserSecretsId>36d572a0-0f32-4ded-b30d-c8640ec9d9a7</UserSecretsId>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+    <PackageReference Include="Aspire.Hosting.Redis" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Microservices\Catalog\Catalog.API\Catalog.API.csproj" />
@@ -15,12 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Microservices\Catalog\Catalog.Infrastructure\Catalog.Infrastructure.csproj" IsAspireProjectResource="false" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.AppHost" />
-    <PackageReference Include="Aspire.Hosting.Azure.PostgreSQL" />
-    <PackageReference Include="Aspire.Hosting.Redis" />
   </ItemGroup>
 
 </Project>

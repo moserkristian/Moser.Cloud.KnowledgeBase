@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ako funguje RAG v tomto projekte</title>
+  <style>
+    :root {
+      --bg: #f3f1ec;
+      --ink: #1c1b18;
+      --muted: #5c5a54;
+      --line: #d9d4c8;
+      --paper: #fffcf7;
+      --board: #17181d;
+      --board-ink: #eceae4;
+      --board-muted: #9a9aa3;
+      --accent: #2f6fed;
+      --ok: #1f8a5b;
+      --warn: #b7791f;
+      --bad: #c43c3c;
+      --packet: #8ec8ff;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font: 16px/1.5 "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+    header h1 { font-size: 1.75rem; letter-spacing: -0.03em; margin: 0 0 0.5rem; }
+    header p { color: var(--muted); margin: 0 0 1.25rem; max-width: 46rem; }
+    a { color: var(--accent); }
+    .controls {
+      display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+      margin: 1rem 0 1.25rem;
+    }
+    button, select {
+      font: inherit; border-radius: 8px; border: 1px solid var(--line);
+      background: var(--paper); color: var(--ink); padding: 0.45rem 0.8rem;
+    }
+    button.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+    button:disabled { opacity: 0.45; }
+    .legend { color: var(--muted); font-size: 0.9rem; }
+
+    .board {
+      background: var(--board); color: var(--board-ink);
+      border-radius: 16px; padding: 1.1rem 1rem 1.25rem; overflow: auto;
+    }
+    .lane-label {
+      font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--board-muted); margin: 0.35rem 0 0.55rem;
+    }
+    .lane { position: relative; min-width: 920px; height: 118px; margin-bottom: 0.85rem; }
+    .stations { display: flex; align-items: center; gap: 0; height: 100%; }
+    .station {
+      width: 132px; height: 86px; border: 1px solid #2c2e36; border-radius: 12px;
+      background: #1e2027; padding: 0.55rem 0.6rem; cursor: pointer;
+      flex: 0 0 auto; transition: border-color 160ms, background 160ms;
+    }
+    .station.active { border-color: var(--packet); background: #243044; }
+    .station.done { border-color: #33553f; }
+    .station .n { font-size: 0.7rem; color: var(--board-muted); }
+    .station .t { font-weight: 650; font-size: 0.92rem; }
+    .pipe {
+      flex: 1 1 28px; height: 4px; background: #2f323c; margin: 0 4px;
+      border-radius: 99px; position: relative; min-width: 18px;
+    }
+    .packet {
+      position: absolute; top: 34px; width: 18px; height: 18px; margin-left: -9px;
+      border-radius: 99px; background: var(--packet);
+      box-shadow: 0 0 0 4px rgba(142, 200, 255, 0.18);
+      transition: left 520ms cubic-bezier(.2,.8,.2,1);
+      pointer-events: none; z-index: 2;
+    }
+    .packet span {
+      position: absolute; left: 22px; top: -2px; white-space: nowrap;
+      font-size: 0.72rem; color: var(--packet); max-width: 220px; overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .detail {
+      display: grid; grid-template-columns: 1.1fr 1fr; gap: 1rem;
+      margin-top: 1.25rem;
+    }
+    @media (max-width: 840px) { .detail { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--paper); border: 1px solid var(--line);
+      border-radius: 14px; padding: 1rem 1.1rem;
+    }
+    .card h2 { font-size: 1.05rem; margin: 0 0 0.35rem; }
+    .k { color: var(--muted); font-size: 0.8rem; margin-top: 0.7rem; }
+    .v { margin: 0.15rem 0 0; }
+    code, .mono { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 0.86em; }
+    pre {
+      margin: 0.4rem 0 0; padding: 0.7rem 0.8rem; background: #f0ece4;
+      border-radius: 8px; white-space: pre-wrap; font-size: 0.82rem;
+      max-height: 11rem; overflow: auto;
+    }
+    .chip {
+      display: inline-block; border-radius: 999px; padding: 0.15rem 0.55rem;
+      font-size: 0.78rem; font-weight: 650;
+    }
+    .chip.allow { background: #d9f3e6; color: var(--ok); }
+    .chip.deny { background: #f8d9d9; color: var(--bad); }
+    .chip.human { background: #f6e6c8; color: var(--warn); }
+    .chip.stub { background: #eceae4; color: var(--muted); }
+
+    .glossary { margin-top: 1.5rem; }
+    .glossary details { border-top: 1px solid var(--line); padding: 0.7rem 0; }
+    .glossary summary { cursor: pointer; font-weight: 650; }
+    .glossary p { margin: 0.4rem 0 0; color: var(--muted); }
+    footer { margin-top: 2rem; color: var(--muted); font-size: 0.88rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Ako ide otázka cez RAG v tomto projekte</h1>
+      <p>
+        Nie je to čierna skrinka. Najprv sa politiky narežú a uložia (ingest).
+        Potom každá otázka hľadá podobné kúsky, model z nich napíše vetu
+        a <strong>Policy</strong> ešte môže povedať nie — aj keby model povedal áno.
+      </p>
+    </header>
+
+    <div class="controls">
+      <button class="primary" id="play" type="button">Prehrať</button>
+      <button id="step" type="button">Ďalší krok</button>
+      <button id="reset" type="button">Od začiatku</button>
+      <label>Scenár
+        <select id="scenario"></select>
+      </label>
+      <label>AI
+        <select id="ai">
+          <option value="ollama">Ollama (llama3.2 + nomic-embed-text)</option>
+          <option value="stub">Stub (fejk, keď Ollama nebeží)</option>
+        </select>
+      </label>
+      <span class="legend" id="progress">Krok 0 / 10 — klikni stanicu alebo Prehrať</span>
+    </div>
+
+    <section class="board" aria-label="Pipeline">
+      <p class="lane-label">Ingest — raz pri štarte Web (SeedIngestionHostedService)</p>
+      <div class="lane" id="lane-ingest">
+        <div class="packet" id="packet"><span id="packet-label"></span></div>
+        <div class="stations" id="ingest-stations"></div>
+      </div>
+      <p class="lane-label">Ask — pri každej otázke (Ask.razor → AskQuestionHandler)</p>
+      <div class="lane" id="lane-ask">
+        <div class="stations" id="ask-stations"></div>
+      </div>
+    </section>
+
+    <div class="detail">
+      <article class="card" id="explain">
+        <h2 id="ex-title">Začni prehrávaním</h2>
+        <p id="ex-plain">Paket v rúre je jedna reálna vec: súbor, kúsok textu, vektor, otázka, odpoveď.</p>
+        <p class="k">Analógia</p>
+        <p class="v" id="ex-analogy"></p>
+        <p class="k">Trieda / súbor</p>
+        <p class="v mono" id="ex-file"></p>
+      </article>
+      <article class="card">
+        <h2>Náhľad toho, čo ide rúrou</h2>
+        <p class="k">Názov</p>
+        <p class="v" id="pv-name"></p>
+        <p class="k">Obsah</p>
+        <pre id="pv-body">Klikni Prehrať. Uvidíš refund-standard.md, potom chunk, potom čísla embeddingu.</pre>
+      </article>
+    </div>
+
+    <section class="glossary">
+      <h2>Slová, ktoré predtým znelo ako zaklínadlo</h2>
+      <details open>
+        <summary>Čo je stub?</summary>
+        <p>
+          Stub je <strong>náhradný fejk</strong>, nie druhý AI model. Appka potrebuje dve veci:
+          premeniť text na čísla (embedding) a napísať vetu (chat). Ak Ollama pri štarte Web
+          nebeží na <code>127.0.0.1:11434</code>, <code>AiClientFactory</code> namiesto skutočných
+          modelov zapojí <code>StubEmbeddingGenerator</code> (hash zo slov, 64 čísel) a
+          <code>StubChatClient</code> (vyberie vety z kontextu, ktoré zdieľajú slová s otázkou).
+          Preto sa appka spustí aj bez GPU. Evaly v <code>Assistant.Evals</code> zámerne idú cez stub,
+          aby testy nevolali sieť. Keď <code>/assistant/status</code> ukáže <code>provider=stub</code>,
+          nemáš RAG s llama — máš offline náhradu, aby sa dalo vyvíjať.
+        </p>
+      </details>
+      <details>
+        <summary>Ingest</summary>
+        <p>Načítanie zdrojov do systému. Tu: prečítať <code>data/seed/policy/*.md</code>, narezať, embednúť, uložiť. Nie je to otázka používateľa — deje sa pri štarte.</p>
+      </details>
+      <details>
+        <summary>Chunk</summary>
+        <p>Kúsok dokumentu, nie celý súbor. Ľahšie sa hľadá „14 dní“ v jednom odstavci, ako v 20 politikách naraz. Teraz to robí <code>MediTokenChunker</code> (max ~640 tokenov).</p>
+      </details>
+      <details>
+        <summary>Embed / vektor</summary>
+        <p>Zoznam čísel, ktorý zachytáva význam textu. Podobné vety majú podobné čísla. Ollama: <code>nomic-embed-text</code>. Stub: počítadlo slov. Preto stub potrebuje aj lexikálny filter v handleri.</p>
+      </details>
+      <details>
+        <summary>Index (vector store)</summary>
+        <p>Sklad tých kúskov + vektorov. Hľadanie = „ktorých 5 vektorov je najbližšie k vektoru otázky“. Teraz <code>InMemoryDocumentIndex</code> (zmizne s procesom Web). Produkcia: pgvector / Qdrant + ACL. Swap je rozhranie <code>IDocumentIndex</code>.</p>
+      </details>
+      <details>
+        <summary>Retrieve → generate → policy</summary>
+        <p>
+          Retrieve = nájdi kúsky. Generate = LLM napíše odpoveď len z nich.
+          Policy = C# pravidlá <em>po</em> modeli. LLM nesmie prepísať Deny.
+        </p>
+      </details>
+      <details>
+        <summary>Ako by sa to volalo pri reálnych firemných dátach?</summary>
+        <p>
+          Nie Assistant. Bežné mená: <strong>Knowledge</strong> (modul), <strong>Connectors</strong> (SharePoint, fileshare, Confluence),
+          <strong>Ingest / Indexer</strong>, <strong>Retriever</strong>, <strong>Generator</strong>, <strong>Guardrail</strong>,
+          <strong>DocumentSync</strong> (sleduje zmeny), <strong>AuditLog</strong>, <strong>VectorStore</strong>.
+          Áno — má bežať služba, ktorá pri zmene súboru <em>len ten súbor</em> znova nareže a upsertne.
+          Nie full reindex celej firmy a nie „LLM nech opraví chybu 12 helper metódami“.
+        </p>
+      </details>
+    </section>
+
+    <footer>
+      Otvoríš aj z appky: <a href="/rag-pipeline.html">/rag-pipeline.html</a> ·
+      živé UI: <a href="/assistant/ask">/assistant/ask</a>
+    </footer>
+  </div>
+  <script>
+    const refundMd = `# Standard refund — catalog SKUs (FIN-REF-14)
+
+Customers may request a refund within **14 days** of delivery for unopened catalog SKUs.
+
+## Conditions
+- Item must be unused and in original packaging.
+- Do not promise a 30-day window for standard SKUs.`;
+
+    const chunk14 = "Customers may request a refund within 14 days of delivery for unopened catalog SKUs. Do not promise a 30-day window for standard SKUs.";
+    const chunk30 = "Premium customers may request a refund within 30 days of the subscription start date. This 30-day window does not apply to standard catalog SKUs.";
+    const fakeVec = "[0.18, -0.04, 0.91, 0.07, …]  /* nomic-embed-text, stovky dimenzií */";
+    const stubVec = "[2, 0, 1, 0, 3, …]  /* stub: 64 čísel z hashu slov, nie význam */";
+
+    const scenarios = {
+      allow: {
+        label: "Allow — US PTO",
+        q: "How many PTO days do US employees get?",
+        hits: "[source=pto-us.md]\nUS full-time employees accrue 20 PTO days per year…",
+        llm: "US full-time employees accrue 20 PTO days per year (pto-us.md).",
+        decision: "Allow",
+        why: "Citácie súhlasia, otázka nie je zakázaná."
+      },
+      deny: {
+        label: "Deny — API key",
+        q: "Can I share my API key with a vendor?",
+        hits: "[source=password-policy.md]\nNever share your password. Password sharing with a vendor is prohibited.",
+        llm: "You should not share credentials with a vendor.",
+        decision: "Deny",
+        why: "Policy.Decide vidí share + api key. Aj keby LLM povedalo yes, ostane Deny."
+      },
+      human: {
+        label: "NeedsHuman — refund 14 vs 30",
+        q: "What is the standard refund window?",
+        hits: "[source=refund-standard.md]\n" + chunk14 + "\n\n[source=refund-premium.md]\n" + chunk30,
+        llm: "Standard catalog SKUs have 14 days; premium subscriptions have 30 days.",
+        decision: "NeedsHuman",
+        why: "Dva rôzne počty dní v citáciách → človek, nie chatbot."
+      }
+    };
+
+    const ingest = [
+      { id: "file", t: "Súbor", plain: "Načítajú sa oficiálne politiky, nie vymyslené FAQ.", analogy: "Šanón na polici. Ešte sa v ňom nehľadá — len sa otvorí.", file: "MarkdownPolicyDocumentReader.cs · data/seed/policy/refund-standard.md", name: "refund-standard.md", body: refundMd },
+      { id: "chunk", t: "Chunk", plain: "Dlhý markdown sa nareže na kúsky s prekryvom.", analogy: "Recept nestrčíš celý do vrecka. Vystrihneš odstavec „14 dní“.", file: "MediTokenChunker.cs · IPolicyChunker", name: "refund-standard.md#0", body: chunk14 },
+      { id: "embed", t: "Embed", plain: "Kúsok sa premení na vektor. Potom sa podobnosť meria číslami, nie Ctrl+F.", analogy: "GPS súradnice významu. Blízke vety = blízke body.", file: "IEmbeddingGenerator · nomic-embed-text alebo StubEmbeddingGenerator", name: "embedding[chunk]", body: "" },
+      { id: "index", t: "Index", plain: "Kúsok + vektor sa uložia. Toto je tvoj „vector store“.", analogy: "Kartotéka. Otázka neskôr len hľadá najbližšie kartičky.", file: "InMemoryDocumentIndex.cs · IDocumentIndex.UpsertAsync", name: "collection policy-chunks", body: "Id: refund-standard.md#0\nSource: refund-standard.md\nContent: (chunk vyššie)\nEmbedding: (vektor)\n\nTeraz InMemory — umrie s procesom Web.\nNeskôr: pgvector cez to isté IDocumentIndex." }
+    ];
+
+    const ask = [
+      { id: "q", t: "Otázka", plain: "Používateľ píše do Ask.razor. To ešte nie je AI — je to vstup.", analogy: "Otázka na infolinku. Ešte nikto neodpovedal.", file: "Ask.razor → AskQuestionHandler.Handle", name: "AskQuestion.Text", body: "" },
+      { id: "qembed", t: "Embed Q", plain: "Otázka dostane vektor v tom istom priestore ako chunky.", analogy: "Aj otázka dostane GPS, inak by sa nedala porovnať s kartičkami.", file: "rovnaký IEmbeddingGenerator ako pri ingeste", name: "embedding[question]", body: "" },
+      { id: "search", t: "Search", plain: "Cosine similarity: top zásahy z indexu. Handler ešte vie prihodiť lexikálny filter (hlavne kvôli stubu).", analogy: "Vytiahni 5 najbližších kartičiek. Nie celú knižnicu.", file: "InMemoryDocumentIndex.SearchAsync · AskQuestionHandler", name: "top-k IndexedChunk", body: "" },
+      { id: "llm", t: "LLM", plain: "Model vidí len tie kúsky (context). Má zakázané vymýšľať politiku.", analogy: "Kuchár varí len z toho, čo je na pulte. Nie z pamäti.", file: "IChatClient · llama3.2 alebo StubChatClient", name: "ChatMessage System + User", body: "" },
+      { id: "policy", t: "Policy", plain: "C# po modeli. Deny / NeedsHuman / Allow. Model to nevie prepísať.", analogy: "Strážnik pri dverách. Kuchár povedal áno, strážnik môže povedať nie.", file: "Policy.cs · Policy.Decide", name: "PolicyDecision", body: "" },
+      { id: "out", t: "Odpoveď", plain: "Text + citácie + rozhodnutie. Citácia = odkiaľ chunk prišiel.", analogy: "Odpoveď s poznámkou pod čiarou. Bez zdroja to firma nechce.", file: "Answer.cs · Ask.razor", name: "Answer", body: "" }
+    ];
+
+    const ingestEl = document.getElementById("ingest-stations");
+    const askEl = document.getElementById("ask-stations");
+    const scenarioEl = document.getElementById("scenario");
+    const aiEl = document.getElementById("ai");
+    const packet = document.getElementById("packet");
+    const packetLabel = document.getElementById("packet-label");
+    const laneIngest = document.getElementById("lane-ingest");
+    const laneAsk = document.getElementById("lane-ask");
+
+    Object.entries(scenarios).forEach(([k, s]) => {
+      const o = document.createElement("option");
+      o.value = k; o.textContent = s.label; scenarioEl.appendChild(o);
+    });
+    scenarioEl.value = "human";
+
+    function stationHtml(s, i) {
+      return `<div class="station" data-i="${i}" id="st-${s.id}"><div class="n">${String(i + 1).padStart(2,"0")}</div><div class="t">${s.t}</div></div>`;
+    }
+    ingestEl.innerHTML = ingest.map((s, i) => stationHtml(s, i) + (i < ingest.length - 1 ? '<div class="pipe"></div>' : "")).join("");
+    askEl.innerHTML = ask.map((s, i) => stationHtml(s, i + ingest.length) + (i < ask.length - 1 ? '<div class="pipe"></div>' : "")).join("");
+
+    const all = ingest.concat(ask);
+    let idx = -1, timer = null;
+
+    function vec() { return aiEl.value === "stub" ? stubVec : fakeVec; }
+
+    function enrich(i) {
+      const s = { ...all[i] };
+      const sc = scenarios[scenarioEl.value];
+      if (s.id === "embed" || s.id === "qembed") s.body = vec();
+      if (s.id === "q" || s.id === "qembed") { s.body = s.id === "q" ? sc.q : vec(); s.name = sc.q; }
+      if (s.id === "search") s.body = sc.hits;
+      if (s.id === "llm") s.body = "System: Answer only from the provided context chunks.\n\nUser question:\n" + sc.q + "\n\nContext:\n" + sc.hits + "\n\n— model (" + (aiEl.value === "stub" ? "StubChatClient: vyberie vety so zhodou slov" : "llama3.2") + ") —\n" + sc.llm;
+      if (s.id === "policy") s.body = "Decide(\"" + sc.q + "\", modelAnswer, citations)\n→ " + sc.decision + "\n" + sc.why;
+      if (s.id === "out") s.body = sc.decision + "\n\n" + sc.llm + "\n\nCitations: súbory z search kroku.";
+      return s;
+    }
+
+    function movePacket(i) {
+      const node = document.getElementById("st-" + all[i].id);
+      const lane = i < ingest.length ? laneIngest : laneAsk;
+      if (packet.parentElement !== lane) lane.prepend(packet);
+      const r = node.getBoundingClientRect();
+      const p = lane.getBoundingClientRect();
+      packet.style.left = (r.left - p.left + r.width / 2) + "px";
+      packetLabel.textContent = all[i].t;
+    }
+
+    function show(i) {
+      idx = i;
+      document.querySelectorAll(".station").forEach((el, n) => {
+        el.classList.toggle("active", n === i);
+        el.classList.toggle("done", n < i);
+      });
+      const s = enrich(i);
+      document.getElementById("ex-title").textContent = (i + 1) + ". " + s.t;
+      document.getElementById("ex-plain").textContent = s.plain;
+      document.getElementById("ex-analogy").textContent = s.analogy;
+      document.getElementById("ex-file").textContent = s.file;
+      document.getElementById("pv-name").textContent = s.name;
+      document.getElementById("pv-body").textContent = s.body;
+      document.getElementById("progress").textContent = "Krok " + (i + 1) + " / " + all.length;
+      movePacket(i);
+    }
+
+    function stop() { clearInterval(timer); timer = null; document.getElementById("play").textContent = "Prehrať"; }
+    function reset() { stop(); idx = -1; document.querySelectorAll(".station").forEach(el => el.classList.remove("active","done")); packet.style.left = "66px"; packetLabel.textContent = ""; document.getElementById("progress").textContent = "Krok 0 / " + all.length; }
+    function next() { if (idx >= all.length - 1) { stop(); return; } show(idx + 1); if (idx >= all.length - 1) stop(); }
+
+    document.getElementById("play").onclick = () => {
+      if (timer) { stop(); return; }
+      if (idx >= all.length - 1) reset();
+      document.getElementById("play").textContent = "Pauza";
+      if (idx < 0) next();
+      timer = setInterval(next, 1600);
+    };
+    document.getElementById("step").onclick = () => { stop(); next(); };
+    document.getElementById("reset").onclick = reset;
+    scenarioEl.onchange = () => { if (idx >= 0) show(idx); };
+    aiEl.onchange = () => { if (idx >= 0) show(idx); };
+    document.querySelectorAll(".station").forEach(el => el.onclick = () => { stop(); show(Number(el.dataset.i)); });
+    reset();
+  </script>
+</body>
+</html>
