@@ -1,8 +1,6 @@
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 
-using Microsoft.Extensions.Configuration;
-
 using Moser.Enterprise.Blueprint.Catalog.Infrastructure;
 
 namespace Moser.Enterprise.Blueprint.AppHost;
@@ -23,24 +21,21 @@ public static class Program
         var cache = builder.AddRedis("cache");
         var catalogApi = builder.AddProject<Projects.Catalog_API>("catalog-api");
 
-        var web = builder.AddProject<Projects.Web>("webfrontend")
+        // Native Windows Ollama (binds 127.0.0.1:11434). Do not add a Docker/Aspire Ollama
+        // container — it would clash on 11434 with the installed app/service.
+        // Do not WaitFor it: Web probes the endpoint at startup and falls back to stub.
+        var ollama = builder.AddExternalService(OllamaName, OllamaUrl);
+
+        builder.AddProject<Projects.Web>("webfrontend")
             .WithExternalHttpEndpoints()
             .WithReference(cache)
             .WaitFor(cache)
             .WithReference(catalogApi)
             .WaitFor(catalogApi)
+            .WithReference(ollama)
+            .WithEnvironment("OLLAMA_ENDPOINT", OllamaUrl)
             .WithEnvironment("OLLAMA_CHAT_MODEL", "llama3.2")
             .WithEnvironment("OLLAMA_EMBED_MODEL", "nomic-embed-text");
-
-        // Default (local): native Ollama at 127.0.0.1:11434, same as before.
-        // CI fixture CiDistributedAppTestFixture passes Ollama:Enabled=false so Web starts on the stub.
-        if (builder.Configuration.GetValue("Ollama:Enabled", true))
-        {
-            var ollama = builder.AddExternalService(OllamaName, OllamaUrl)
-                .WithHttpHealthCheck("/api/tags");
-            web.WithReference(ollama)
-                .WithEnvironment("OLLAMA_ENDPOINT", OllamaUrl);
-        }
 
         builder.Build().Run();
     }

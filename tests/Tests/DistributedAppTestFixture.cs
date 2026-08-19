@@ -15,10 +15,6 @@ using AppHost = Moser.Enterprise.Blueprint.AppHost;
 
 namespace Moser.Enterprise.Blueprint.Tests;
 
-/// <summary>
-/// Original AppHost fixture (native Ollama + cert-bypass HttpClient).
-/// GitHub Actions / stub path: <see cref="CiDistributedAppTestFixture"/>.
-/// </summary>
 [Collection("DistributedAppTestCollection")]
 public class DistributedAppTestFixture : IAsyncLifetime
 {

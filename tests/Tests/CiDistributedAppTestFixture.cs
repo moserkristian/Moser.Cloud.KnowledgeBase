@@ -8,10 +8,6 @@ using AppHost = Moser.Enterprise.Blueprint.AppHost;
 
 namespace Moser.Enterprise.Blueprint.Tests;
 
-/// <summary>
-/// CI / no-Ollama AppHost fixture. Replaces <see cref="DistributedAppTestFixture"/> on GitHub Actions
-/// (see <see cref="CiAspireOrchestratedTests"/>). Local Ollama path stays on DistributedAppTestFixture.
-/// </summary>
 public sealed class CiDistributedAppTestFixture : IAsyncLifetime
 {
     private DistributedApplication? _app;
@@ -20,8 +16,7 @@ public sealed class CiDistributedAppTestFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        var builder = await DistributedApplicationTestingBuilder.CreateAsync<Projects.AppHost>(
-            ["Ollama:Enabled=false"]);
+        var builder = await DistributedApplicationTestingBuilder.CreateAsync<Projects.AppHost>();
 
         builder.Services.Configure<DistributedApplicationOptions>(options =>
         {

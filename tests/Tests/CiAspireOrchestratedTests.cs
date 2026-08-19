@@ -7,7 +7,6 @@ public sealed class CiDistributedAppTestCollection : ICollectionFixture<CiDistri
 {
 }
 
-// CI / stub AppHost. Local Ollama path: AspireOrchestratedTests + DistributedAppTestFixture.
 [Collection("CiDistributedAppTestCollection")]
 public class CiAspireOrchestratedTests(CiDistributedAppTestFixture fixture)
 {

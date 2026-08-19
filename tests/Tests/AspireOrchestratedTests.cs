@@ -2,8 +2,6 @@ using System.Threading.Tasks;
 
 namespace Moser.Enterprise.Blueprint.Tests;
 
-// Original orchestrated test (native Ollama). CI skips Category=LocalOllama.
-// Active CI path: CiAspireOrchestratedTests.
 [Collection("DistributedAppTestCollection")]
 [Trait("Category", "LocalOllama")]
 public class AspireOrchestratedTests(DistributedAppTestFixture fixture)
