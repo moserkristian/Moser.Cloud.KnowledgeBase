@@ -1,0 +1,60 @@
+@page "/legend"
+
+<PageTitle>Legend</PageTitle>
+
+<section class="legend-page">
+    <p class="eyebrow">Knowledge</p>
+    <h1>Legend</h1>
+    <p>
+        Terms used on Ask, Status, People, and the
+        <a href="/rag-pipeline.html">RAG flow</a> animation.
+    </p>
+
+    <h2>Pipeline</h2>
+    <dl>
+        <dt>RAG</dt>
+        <dd>Retrieval-augmented generation: answer from found documents, not from the model’s memory.</dd>
+        <dt>Ingest</dt>
+        <dd>Load documents before anyone asks. Today: <code>.md</code> files under <code>data/seed/policy</code>.</dd>
+        <dt>Chunk</dt>
+        <dd>A short slice of a document, not the whole file.</dd>
+        <dt>Embedding</dt>
+        <dd>A list of numbers that represents meaning. Similar text sits close together.</dd>
+        <dt>Index</dt>
+        <dd>The store of chunks + embeddings. This prototype keeps it in memory in the Web process.</dd>
+        <dt>Retrieve</dt>
+        <dd>Embed the question and pull the nearest chunks.</dd>
+        <dt>Generate</dt>
+        <dd>The LLM (large language model) writes an answer using only those chunks.</dd>
+        <dt>Policy</dt>
+        <dd>C# rules after the model. Can Deny or send to a human even if the model said yes.</dd>
+        <dt>Stub</dt>
+        <dd>A stand-in when Ollama is offline. Not an LLM — word counts and copied sentences so the app still runs.</dd>
+        <dt>Citation</dt>
+        <dd>Which source file a retrieved chunk came from.</dd>
+    </dl>
+
+    <h2>Hosting</h2>
+    <dl>
+        <dt>Module</dt>
+        <dd>Library hosted inside another process. Assistant (ask + policy) and Ingestion (read/chunk/embed) both live in Web today.</dd>
+        <dt>Worker</dt>
+        <dd>Background process that runs jobs (fetch, chunk, embed). Other apps do not call it on every click.</dd>
+        <dt>Microservice</dt>
+        <dd>Long-running API with its own URL, health, and deploy. Exists when other systems need a stable contract, or when the work must scale and fail on its own.</dd>
+        <dt>Replica</dt>
+        <dd>Another instance of the same service behind a load balancer. Use when the API is stateless and many employees hit it at once.</dd>
+        <dt>Control plane</dt>
+        <dd>Settings that must stay editable if a job crashes: source paths, enable/disable, last error, retry.</dd>
+    </dl>
+
+    <h2>This intranet</h2>
+    <dl>
+        <dt>People</dt>
+        <dd>Employee directory microservice. Read-only, identical data on every replica — safe to scale out.</dd>
+        <dt>Ingestion module</dt>
+        <dd>Turns files into chunks + embeddings. Not an API. A worker would host this later.</dd>
+        <dt>Assistant module</dt>
+        <dd>Ask + Policy inside Web. Becomes an API when a second client (Teams bot) appears.</dd>
+    </dl>
+</section>

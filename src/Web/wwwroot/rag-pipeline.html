@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="sk">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ako funguje RAG v tomto projekte</title>
+  <title>How RAG works in this project</title>
   <style>
     :root {
       --bg: #f3f1ec;
@@ -129,17 +129,15 @@
 <body>
   <div class="wrap">
     <header>
-      <h1>Ako ide otázka cez RAG v tomto projekte</h1>
+      <h1>How a question flows through this app</h1>
       <p>
-        Diagram ingest → index → retrieve → generate → policy znel ako zaklínadlo,
-        lebo to boli <strong>názvy krokov</strong>, nie veci, ktoré vieš chytiť.
-        V rúre nejde „RAG“. Ide konkrétny súbor, potom kúsok textu, potom kopka čísel,
-        potom otázka, potom odpoveď.
+        RAG (retrieval-augmented generation) is not a single box. A policy file is loaded,
+        sliced, turned into numbers, stored, then later matched to a question so the model
+        can answer from those slices only. Terms live on <a href="/legend">/legend</a>.
       </p>
       <p>
-        Nižšie je animovaná rúra: <strong>Prehrať / Ďalší krok</strong>, scenáre
-        Allow / Deny / NeedsHuman, prepínač Ollama vs stub.
-        V pakete uvidíš reálny <code>refund-standard.md</code>, chunk, vektor, triedu aj súbor.
+        Play / next step below. Allow / Deny / NeedsHuman changes the sample question.
+        The packet is a real file, then a chunk, then embedding numbers.
       </p>
     </header>
 
@@ -253,19 +251,19 @@
     </section>
 
     <div class="controls">
-      <button class="primary" id="play" type="button">Prehrať</button>
-      <button id="step" type="button">Ďalší krok</button>
-      <button id="reset" type="button">Od začiatku</button>
+      <button class="primary" id="play" type="button">Play</button>
+      <button id="step" type="button">Next step</button>
+      <button id="reset" type="button">From the start</button>
       <label>Scenár
         <select id="scenario"></select>
       </label>
       <label>AI
         <select id="ai">
           <option value="ollama">Ollama (llama3.2 + nomic-embed-text)</option>
-          <option value="stub">Stub (fejk, keď Ollama nebeží)</option>
+          <option value="stub">Stub (stand-in when Ollama is offline)</option>
         </select>
       </label>
-      <span class="legend" id="progress">Krok 0 / 10 — klikni stanicu alebo Prehrať</span>
+      <span class="legend" id="progress">Step 0 / 10 — click a station or Play</span>
     </div>
 
     <section class="board" aria-label="Pipeline">
@@ -345,8 +343,9 @@
     </section>
 
     <footer>
-      Otvoríš aj z appky: <a href="/rag-pipeline.html">/rag-pipeline.html</a> ·
-      živé UI: <a href="/assistant/ask">/assistant/ask</a>
+      Legend: <a href="/legend">/legend</a> ·
+      People directory: <a href="/people">/people</a> ·
+      Ask: <a href="/assistant/ask">/assistant/ask</a>
     </footer>
   </div>
   <script>
@@ -467,18 +466,18 @@ Customers may request a refund within **14 days** of delivery for unopened catal
       document.getElementById("ex-file").textContent = s.file;
       document.getElementById("pv-name").textContent = s.name;
       document.getElementById("pv-body").textContent = s.body;
-      document.getElementById("progress").textContent = "Krok " + (i + 1) + " / " + all.length;
+      document.getElementById("progress").textContent = "Step " + (i + 1) + " / " + all.length;
       movePacket(i);
     }
 
-    function stop() { clearInterval(timer); timer = null; document.getElementById("play").textContent = "Prehrať"; }
-    function reset() { stop(); idx = -1; document.querySelectorAll(".station").forEach(el => el.classList.remove("active","done")); packet.style.left = "66px"; packetLabel.textContent = ""; document.getElementById("progress").textContent = "Krok 0 / " + all.length; }
+    function stop() { clearInterval(timer); timer = null; document.getElementById("play").textContent = "Play"; }
+    function reset() { stop(); idx = -1; document.querySelectorAll(".station").forEach(el => el.classList.remove("active","done")); packet.style.left = "66px"; packetLabel.textContent = ""; document.getElementById("progress").textContent = "Step 0 / " + all.length; }
     function next() { if (idx >= all.length - 1) { stop(); return; } show(idx + 1); if (idx >= all.length - 1) stop(); }
 
     document.getElementById("play").onclick = () => {
       if (timer) { stop(); return; }
       if (idx >= all.length - 1) reset();
-      document.getElementById("play").textContent = "Pauza";
+      document.getElementById("play").textContent = "Pause";
       if (idx < 0) next();
       timer = setInterval(next, 1600);
     };

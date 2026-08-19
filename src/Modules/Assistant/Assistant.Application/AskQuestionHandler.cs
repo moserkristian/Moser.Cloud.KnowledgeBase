@@ -1,6 +1,7 @@
 using Microsoft.Extensions.AI;
 
 using Moser.Enterprise.Blueprint.Assistant.Domain;
+using Moser.Enterprise.Blueprint.Ingestion.Application;
 
 using System;
 using System.Collections.Generic;

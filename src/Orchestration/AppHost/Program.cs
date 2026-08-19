@@ -1,15 +1,13 @@
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 
-using Moser.Enterprise.Blueprint.Catalog.Infrastructure;
-
 namespace Moser.Enterprise.Blueprint.AppHost;
 
 public static class Program
 {
     public const string PostgresContainerName = "platform-postgres-container";
     public const string PostgresDbName = "postgres-db";
-    public const string CatalogApiName = "catalog-api";
+    public const string PeopleApiName = "people-api";
     public const string WebFrontendName = "webfrontend";
     public const string OllamaName = "ollama";
     public const string OllamaUrl = "http://127.0.0.1:11434";
@@ -19,7 +17,11 @@ public static class Program
         var builder = DistributedApplication.CreateBuilder(args);
 
         var cache = builder.AddRedis("cache");
-        var catalogApi = builder.AddProject<Projects.Catalog_API>("catalog-api");
+
+        // Stateless employee directory. Replicas share the same in-memory seed — safe to scale out
+        // when many employees look up “who owns PTO?” independently of the Blazor Web process.
+        var peopleApi = builder.AddProject<Projects.People_API>(PeopleApiName)
+            .WithReplicas(2);
 
         // Native Windows Ollama (binds 127.0.0.1:11434). Do not add a Docker/Aspire Ollama
         // container — it would clash on 11434 with the installed app/service.
@@ -30,8 +32,8 @@ public static class Program
             .WithExternalHttpEndpoints()
             .WithReference(cache)
             .WaitFor(cache)
-            .WithReference(catalogApi)
-            .WaitFor(catalogApi)
+            .WithReference(peopleApi)
+            .WaitFor(peopleApi)
             .WithReference(ollama)
             .WithEnvironment("OLLAMA_ENDPOINT", OllamaUrl)
             .WithEnvironment("OLLAMA_CHAT_MODEL", "llama3.2")
@@ -50,10 +52,5 @@ public static class Program
         }
 
         return postgresServerBuilder;
-    }
-
-    public static IResourceBuilder<PostgresDatabaseResource> AddPostgresDb(IResourceBuilder<PostgresServerResource> postgresContainer)
-    {
-        return postgresContainer.AddDatabase(PostgresDbName, FakeDbContext.DbName);
     }
 }

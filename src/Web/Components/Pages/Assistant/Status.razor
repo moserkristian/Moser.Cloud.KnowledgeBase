@@ -3,16 +3,17 @@
 @inject IAssistantWorkspace Workspace
 @inject IJSRuntime JS
 
-<PageTitle>Stav</PageTitle>
+<PageTitle>Status</PageTitle>
 
 <section class="status">
     <header class="status-head">
         <p class="eyebrow">Knowledge</p>
-        <h1>Stav indexu</h1>
-        <p>Provider, model a počet chunkov v tomto procese Web. Pull modelov robí Ollama, nie táto stránka.</p>
+        <h1>Index status</h1>
+        <p>Provider, model, and chunk count in this Web process. Ollama pulls models; this page does not.</p>
         <p>
-            <a href="/assistant/ask">Spýtať sa</a>
-            · <a href="/rag-pipeline.html">Ako to ide rúrou</a>
+            <a href="/assistant/ask">Ask</a>
+            · <a href="/people">People</a>
+            · <a href="/rag-pipeline.html">How the pipeline works</a>
         </p>
     </header>
 
@@ -23,17 +24,17 @@
 
     @if (status is null)
     {
-        <p>Načítavam…</p>
+        <p>Loading…</p>
     }
     else
     {
         @if (status.IsStub)
         {
             <p class="status-banner">
-                Beží <strong>stub</strong> — fejk namiesto Ollamy. Appka sa spustila, keď model nebol dostupný.
+                Running <strong>stub</strong> — a stand-in because Ollama was unavailable at startup.
                 @if (status.LlmReachable)
                 {
-                    <span>Ollama už beží; reštartuj Web, aby sa pri štarte pripojil.</span>
+                    <span>Ollama is reachable now; restart Web so it connects on the next start.</span>
                 }
             </p>
         }
@@ -47,15 +48,15 @@
             <dd><code>@status.EmbeddingModel</code></dd>
             <dt>Ollama</dt>
             <dd>@(status.LlmReachable ? "reachable" : "offline") @(status.LlmEndpoint)</dd>
-            <dt>Chunky</dt>
+            <dt>Chunks</dt>
             <dd>@status.ChunkCount</dd>
-            <dt>Posledný ingest</dt>
-            <dd>@(status.LastIngestUtc?.ToString("u") ?? "nikdy")</dd>
+            <dt>Last ingest</dt>
+            <dd>@(status.LastIngestUtc?.ToString("u") ?? "never")</dd>
         </dl>
 
         <div class="status-actions">
-            <button type="button" class="btn btn-secondary" disabled="@busy" @onclick="Refresh">Obnoviť</button>
-            <button type="button" class="btn btn-secondary" disabled="@busy" @onclick="Reset">Znova načítať seed</button>
+            <button type="button" class="btn btn-secondary" disabled="@busy" @onclick="Refresh">Refresh</button>
+            <button type="button" class="btn btn-secondary" disabled="@busy" @onclick="Reset">Reload seed</button>
         </div>
     }
 </section>
@@ -87,7 +88,7 @@
 
     private async Task Reset()
     {
-        if (!await JS.InvokeAsync<bool>("confirm", "Vymazať in-memory index a znova načítať data/seed/policy?"))
+        if (!await JS.InvokeAsync<bool>("confirm", "Clear the in-memory index and reload data/seed/policy?"))
         {
             return;
         }

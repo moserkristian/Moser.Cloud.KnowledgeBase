@@ -1,0 +1,50 @@
+@page "/people"
+@attribute [StreamRendering(true)]
+@inject PeopleApiClient PeopleApi
+
+<PageTitle>People</PageTitle>
+
+<section class="people">
+    <p class="eyebrow">Intranet directory</p>
+    <h1>People</h1>
+    <p>
+        Employee directory as its own API. Stateless reads, so Aspire can run more than one instance
+        and share the same list. RAG can later ask “who owns PTO?” as a tool call into this service.
+    </p>
+
+    @if (employees is null)
+    {
+        <p>Loading…</p>
+    }
+    else if (employees.Length == 0)
+    {
+        <p>No employees returned from people-api.</p>
+    }
+    else
+    {
+        <div class="people-grid">
+            @foreach (var person in employees)
+            {
+                <article class="card">
+                    <h2>@person.DisplayName</h2>
+                    <p class="people-title">@person.Title · @person.Department</p>
+                    <p>@person.Location · <a href="mailto:@person.Email">@person.Email</a></p>
+                    @if (person.ManagerEmail is not null)
+                    {
+                        <p class="people-meta">Manager: @person.ManagerEmail</p>
+                    }
+                    <p class="people-meta">Policy topics: @string.Join(", ", person.PolicyTopics)</p>
+                </article>
+            }
+        </div>
+    }
+</section>
+
+@code {
+    private EmployeeDto[]? employees;
+
+    protected override async Task OnInitializedAsync()
+    {
+        employees = await PeopleApi.GetEmployeesAsync();
+    }
+}

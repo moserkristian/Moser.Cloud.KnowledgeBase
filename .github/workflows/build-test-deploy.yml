@@ -50,9 +50,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - service: Catalog
+          - service: People
             type: api
-            path: src/Microservices/Catalog/Catalog.API
+            path: src/Microservices/People/People.API
           - service: Web
             type: web
             path: src/Web
@@ -101,7 +101,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - service: Catalog
+          - service: People
             type: api
             port: 8080
           - service: Web
@@ -124,18 +124,18 @@ jobs:
             APP_NAME="${SERVICE_LOWER}"
           fi
 
-          # Get Catalog API FQDN for Web app
+          # Get People API FQDN for Web app
           if [ "${{ matrix.type }}" = "web" ]; then
-            CATALOG_FQDN=$(az containerapp show \
-              --name catalog-api \
+            PEOPLE_FQDN=$(az containerapp show \
+              --name people-api \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
               --query "properties.configuration.ingress.fqdn" \
               -o tsv 2>/dev/null || echo "")
 
-            if [ -n "$CATALOG_FQDN" ]; then
-              ENV_VARS="CatalogApi__BaseUrl=https://${CATALOG_FQDN}"
+            if [ -n "$PEOPLE_FQDN" ]; then
+              ENV_VARS="PeopleApi__BaseUrl=https://${PEOPLE_FQDN}"
             else
-              echo "Warning: Could not get Catalog API FQDN"
+              echo "Warning: Could not get People API FQDN"
               ENV_VARS=""
             fi
           else

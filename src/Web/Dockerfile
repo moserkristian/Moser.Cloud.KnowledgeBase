@@ -11,6 +11,12 @@ WORKDIR /src
 COPY ["Directory.Build.props", "./"]
 COPY ["Directory.Packages.props", "./"]
 COPY ["src/Orchestration/ServiceDefaults/ServiceDefaults.csproj", "src/Orchestration/ServiceDefaults/"]
+COPY ["src/BuildingBlocks/BuildingBlocks.Domain/BuildingBlocks.Domain.csproj", "src/BuildingBlocks/BuildingBlocks.Domain/"]
+COPY ["src/Modules/Ingestion/Ingestion.Application/Ingestion.Application.csproj", "src/Modules/Ingestion/Ingestion.Application/"]
+COPY ["src/Modules/Ingestion/Ingestion.Infrastructure/Ingestion.Infrastructure.csproj", "src/Modules/Ingestion/Ingestion.Infrastructure/"]
+COPY ["src/Modules/Assistant/Assistant.Domain/Assistant.Domain.csproj", "src/Modules/Assistant/Assistant.Domain/"]
+COPY ["src/Modules/Assistant/Assistant.Application/Assistant.Application.csproj", "src/Modules/Assistant/Assistant.Application/"]
+COPY ["src/Modules/Assistant/Assistant.Infrastructure/Assistant.Infrastructure.csproj", "src/Modules/Assistant/Assistant.Infrastructure/"]
 COPY ["src/Web/Web.csproj", "src/Web/"]
 
 RUN dotnet restore "src/Web/Web.csproj"

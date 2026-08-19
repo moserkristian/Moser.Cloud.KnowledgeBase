@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Assistant.Domain\Assistant.Domain.csproj" />
+    <ProjectReference Include="..\..\Ingestion\Ingestion.Application\Ingestion.Application.csproj" />
   </ItemGroup>
 
 </Project>

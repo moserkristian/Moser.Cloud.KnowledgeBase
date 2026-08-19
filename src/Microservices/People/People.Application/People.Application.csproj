@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Moser.Enterprise.Blueprint.People.Application</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\People.Domain\People.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

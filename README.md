@@ -1,11 +1,22 @@
 # Moser.Enterprise.Blueprint
 
-This repository serves as a Proof-of-Concept (PoC) demonstration project, showcasing practical implementation across various technologies and software architecture patterns.
+Proof-of-concept for an intranet policy assistant: RAG (retrieval-augmented generation) plus a small set of real services.
 
-## Technologies and Architectural Patterns
+## Layout
 
-*   **Clean Architecture:** Clear separation of concerns into layers.
-*   **Microservices:** Autonomous services.
-*   **Domain-Driven Design (DDD):** Mirroring business rules into code.
-*   **CQRS (Command Query Responsibility Segregation):** Separating read and write operations for improved performance and maintainability.
-*   **Building Blocks:** Utilizing modular design principles to create maintainable and scalable components.
+*   **`src/Modules`** — libraries hosted inside another process (no own URL).
+    *   **Ingestion** — read `.md` → chunk → embed → upsert into the index.
+    *   **Assistant** — ask, retrieve, generate, Policy guardrail.
+*   **`src/Microservices/People`** — employee directory API. Stateless, so Aspire runs **two replicas**.
+*   **`src/Web`** — Blazor UI (BFF). Hosts the modules. Calls `people-api`.
+*   **`src/BuildingBlocks`** — shared DDD/CQRS primitives.
+
+Catalog (products) and Sources (pointer CRUD) are gone: they were not intranet bounded contexts.
+
+## Run
+
+Native Ollama on `http://localhost:11434`, then:
+
+```powershell
+dotnet run --project src\Orchestration\AppHost
+```

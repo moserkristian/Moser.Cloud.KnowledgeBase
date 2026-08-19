@@ -10,8 +10,8 @@
         <p class="eyebrow">Knowledge</p>
         <h1>Policy assistant</h1>
         <p>
-            Odpoveď ide len z nájdených chunkov. Policy vrstva vie dať Deny aj keď model povie áno.
-            <a href="/rag-pipeline.html">Ukázať tok ingest → index → retrieve → generate → policy</a>
+            Answers come only from retrieved chunks (slices of policy text). Policy can Deny even if the model says yes.
+            <a href="/rag-pipeline.html">Show the ingest → index → retrieve → generate → policy flow</a>
         </p>
         <p class="ask-meta">
             <code>@Runtime.Provider</code>
@@ -19,9 +19,10 @@
             · <code>@Runtime.EmbeddingModel</code>
             @if (Runtime.IsStub)
             {
-                <span> · stub (Ollama sa pri štarte nenašla)</span>
+                <span> · stub (Ollama was not found at startup)</span>
             }
-            · <a href="/assistant/status">Stav</a>
+            · <a href="/assistant/status">Status</a>
+            · <a href="/people">People</a>
         </p>
     </header>
 
@@ -32,14 +33,14 @@
         }
     </div>
 
-    <label class="ask-label" for="question">Otázka</label>
+    <label class="ask-label" for="question">Question</label>
     <textarea id="question" class="ask-input" rows="3" @bind="question" @bind:event="oninput"
               @onkeydown="OnKey" disabled="@busy"
-              placeholder="Ctrl+Enter odošle."></textarea>
+              placeholder="Ctrl+Enter to submit."></textarea>
 
     <div class="ask-actions">
         <button type="button" class="btn btn-primary" @onclick="Submit" disabled="@busy">
-            @(busy ? "Hľadám…" : "Spýtať sa")
+            @(busy ? "Searching…" : "Ask")
         </button>
     </div>
 
@@ -60,13 +61,13 @@
                 <span>@DecisionHint(answer)</span>
             </div>
 
-            <h2>Odpoveď</h2>
+            <h2>Answer</h2>
             <p class="ask-answer">@answer.Text</p>
 
-            <h2>Citácie @(answer.Citations.Count is 0 ? "" : $"({answer.Citations.Count})")</h2>
+            <h2>Citations @(answer.Citations.Count is 0 ? "" : $"({answer.Citations.Count})")</h2>
             @if (answer.Citations.Count == 0)
             {
-                <p class="ask-empty">Žiadne chunky — refuse alebo prázdny index.</p>
+                <p class="ask-empty">No chunks — refuse or empty index.</p>
             }
             else
             {
@@ -111,7 +112,7 @@
         answer = null;
         if (string.IsNullOrWhiteSpace(question))
         {
-            error = "Napíš otázku.";
+            error = "Enter a question.";
             return;
         }
 
@@ -151,14 +152,14 @@
     {
         if (value.Refused)
         {
-            return "Málo policy kontextu.";
+            return "Not enough policy context.";
         }
 
         return value.Decision switch
         {
-            PolicyDecision.Allow => "Podložené retrievanutými politikami.",
-            PolicyDecision.Deny => "Zablokované Policy vrstvou, nie modelom.",
-            PolicyDecision.NeedsHuman => "Konflikt zdrojov — rozhodne človek.",
+            PolicyDecision.Allow => "Grounded in retrieved policies.",
+            PolicyDecision.Deny => "Blocked by the Policy layer, not the model.",
+            PolicyDecision.NeedsHuman => "Conflicting sources — a human decides.",
             _ => ""
         };
     }

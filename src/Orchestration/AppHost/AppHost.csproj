@@ -14,12 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Microservices\Catalog\Catalog.API\Catalog.API.csproj" />
+    <ProjectReference Include="..\..\Microservices\People\People.API\People.API.csproj" />
     <ProjectReference Include="..\..\Web\Web.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\Microservices\Catalog\Catalog.Infrastructure\Catalog.Infrastructure.csproj" IsAspireProjectResource="false" />
   </ItemGroup>
 
 </Project>

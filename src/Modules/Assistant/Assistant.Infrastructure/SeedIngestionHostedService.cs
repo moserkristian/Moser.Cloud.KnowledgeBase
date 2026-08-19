@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-using Moser.Enterprise.Blueprint.Assistant.Application;
+using Moser.Enterprise.Blueprint.Ingestion.Application;
 
 using System;
 using System.Collections.Generic;
@@ -55,16 +55,23 @@ internal sealed class SeedIngestionHostedService : IHostedService
 internal static class SeedPathResolver
 {
     public static string? Resolve(IConfiguration configuration, IHostEnvironment? environment)
+        => Resolve(configuration[$"{AssistantOptions.SectionName}:SeedPath"] ?? "data/seed/policy", environment);
+
+    public static string? Resolve(string path, IHostEnvironment? environment)
     {
-        var configured = configuration[$"{AssistantOptions.SectionName}:SeedPath"] ?? "data/seed/policy";
-        if (Path.IsPathRooted(configured) && Directory.Exists(configured))
+        if (string.IsNullOrWhiteSpace(path))
         {
-            return configured;
+            return null;
+        }
+
+        if (Path.IsPathRooted(path) && Directory.Exists(path))
+        {
+            return path;
         }
 
         foreach (var root in CandidateRoots(environment))
         {
-            var combined = Path.GetFullPath(Path.Combine(root, configured));
+            var combined = Path.GetFullPath(Path.Combine(root, path));
             if (Directory.Exists(combined))
             {
                 return combined;

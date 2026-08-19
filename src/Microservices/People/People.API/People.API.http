@@ -1,0 +1,9 @@
+@People.API_HostAddress = http://localhost:5258
+
+GET {{People.API_HostAddress}}/api/v1/employees
+Accept: application/json
+
+###
+
+GET {{People.API_HostAddress}}/api/v1/employees/6f1c2c3a-0d4e-4b1a-9c11-111111111111
+Accept: application/json

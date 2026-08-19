@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 using Moser.Enterprise.Blueprint.Assistant.Application;
+using Moser.Enterprise.Blueprint.Ingestion.Application;
 
 using System;
 using System.Threading;
