@@ -12,7 +12,7 @@ env:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
 
     steps:
       - name: Checkout source
@@ -33,7 +33,7 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Test
-        run: dotnet test --no-build --configuration Release --verbosity minimal --filter "Category!=Distributed" --blame-hang-timeout 2m
+        run: dotnet test --no-build --configuration Release --verbosity minimal --blame-hang-timeout 3m
         env:
           ASPNETCORE_ENVIRONMENT: CI
           DOTNET_ENVIRONMENT: CI

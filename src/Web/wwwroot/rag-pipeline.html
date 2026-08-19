@@ -41,7 +41,7 @@
     }
     th, td { text-align: left; vertical-align: top; padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--line); }
     th { color: var(--muted); font-weight: 650; font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; }
-    td:first-child { font-weight: 650; white-space: nowrap; width: 7rem; }
+    td:first-child { font-weight: 650; width: 11rem; }
     .glossary ul { margin: 0.4rem 0 0; padding-left: 1.2rem; color: var(--muted); }
     a { color: var(--accent); }
     .controls {
@@ -190,6 +190,68 @@
       <p>Dva časy: horný rad (ingest) sa stane <strong>raz pri štarte</strong>. Dolný rad (ask) pri <strong>každej otázke</strong>.</p>
     </section>
 
+    <section class="primer" id="stub">
+      <h2>Stub nie je LLM. Je to záslepka dvoch zásuviek.</h2>
+      <p>
+        Web potrebuje zapojiť dve veci: <em>text → čísla</em> a <em>napíš vetu</em>.
+        Tie rozhrania (<code>IEmbeddingGenerator</code>, <code>IChatClient</code>) musia mať <em>nejakú</em> implementáciu,
+        inak sa proces nespustí. Keď Ollama nebeží, factory tam nestrčí llama — strčí dve C# triedy,
+        aby DI nespadlo. RAG rúra (súbor → chunk → index → search → Policy) beží aj tak.
+        Chýba len mozog.
+      </p>
+      <table>
+        <thead>
+          <tr><th></th><th>Stub</th><th>Ollama</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Čo to je</td>
+            <td>Dve C# triedy. Žiadne váhy, žiadna sieť.</td>
+            <td>Skutočné modely: <code>nomic-embed-text</code> + <code>llama3.2</code>.</td>
+          </tr>
+          <tr>
+            <td>Je to LLM?</td>
+            <td><strong>Nie.</strong></td>
+            <td>Áno.</td>
+          </tr>
+          <tr>
+            <td>Embed</td>
+            <td>Spočíta výskyty slov do 64 čísel (taška na nákup: koľkokrát „PTO“, „days“…).</td>
+            <td>Súradnice významu. „holiday“ a „PTO“ môžu byť blízko.</td>
+          </tr>
+          <tr>
+            <td>Odpoveď</td>
+            <td>Skopíruje 1–3 vety z kariet, ktoré zdieľajú slová s otázkou. Ctrl+F so skóre.</td>
+            <td>Napíše vetu vlastnými slovami, ale len z tých kariet.</td>
+          </tr>
+          <tr>
+            <td>Otázka</td>
+            <td colspan="2"><code>How many PTO days do US employees get?</code></td>
+          </tr>
+          <tr>
+            <td>Čo vylezie</td>
+            <td>„US full-time employees accrue 20 PTO days per year.“ — skopírované z <code>pto-us.md</code>.</td>
+            <td>Napr. „US employees get 20 PTO days a year (pto-us.md).“ — napísané modelom.</td>
+          </tr>
+          <tr>
+            <td>„holiday allowance in America“</td>
+            <td>Často refuse: slová nesedia na „PTO“ / „US employees“.</td>
+            <td>Môže nájsť tú istú kartu cez význam.</td>
+          </tr>
+          <tr>
+            <td>Načo</td>
+            <td>Web, evaly a CI bez GPU. Vidíš UI, citácie, Deny od Policy.</td>
+            <td>Keď chceš naozaj AI, nie výstrižok vety.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Prepínač Ollama vs stub hore pri rúre mení len náhľad v pakete.
+        Čo reálne beží, ukáže <a href="/assistant/status"><code>/assistant/status</code></a>:
+        <code>provider=stub</code> = záslepka, <code>provider=ollama</code> = váhy.
+      </p>
+    </section>
+
     <div class="controls">
       <button class="primary" id="play" type="button">Prehrať</button>
       <button id="step" type="button">Ďalší krok</button>
@@ -239,20 +301,11 @@
     <section class="glossary">
       <h2>Čo ešte treba vedieť, keď zavrieš chat</h2>
       <details open>
-        <summary>Čo je stub? Áno — fejk. Zámerne.</summary>
+        <summary>Čo je stub? Nie je to LLM.</summary>
         <p>
-          Appka potrebuje dve služby: „text → čísla“ a „napíš vetu“.
-          Ak Ollama pri štarte Web nebeží na <code>127.0.0.1:11434</code>,
-          <code>AiClientFactory</code> namiesto llama/nomic zapojí:
-        </p>
-        <ul>
-          <li><code>StubEmbeddingGenerator</code> — hash zo slov, 64 čísel, <em>nie</em> význam</li>
-          <li><code>StubChatClient</code> — vyberie vety z kontextu, ktoré zdieľajú slová s otázkou, <em>nie</em> LLM</li>
-        </ul>
-        <p>
-          Preto sa Web spustí aj bez modelu a evaly v <code>Assistant.Evals</code> nevolajú sieť.
-          Keď <code>/assistant/status</code> ukáže <code>provider=stub</code>, nemáš lokálne AI.
-          Máš náhradníka, aby sa dalo vyvíjať. Keď tam je <code>ollama</code>, ide to cez skutočné váhy.
+          Záslepka dvoch zásuviek, nie druhý model. <code>StubEmbeddingGenerator</code> hashuje slová do 64 čísel.
+          <code>StubChatClient</code> skopíruje vety z retrievanutých chunkov, kde sa prekrývajú slová.
+          Porovnanie so skutočnou Ollamou je v tabuľke <a href="#stub">vyššie</a>.
         </p>
       </details>
       <details>
