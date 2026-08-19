@@ -32,7 +32,8 @@ public static class Program
             .WithEnvironment("OLLAMA_CHAT_MODEL", "llama3.2")
             .WithEnvironment("OLLAMA_EMBED_MODEL", "nomic-embed-text");
 
-        // Optional native Ollama. Tests/CI pass Ollama:Enabled=false so Web starts on the stub.
+        // Default (local): native Ollama at 127.0.0.1:11434, same as before.
+        // CI fixture CiDistributedAppTestFixture passes Ollama:Enabled=false so Web starts on the stub.
         if (builder.Configuration.GetValue("Ollama:Enabled", true))
         {
             var ollama = builder.AddExternalService(OllamaName, OllamaUrl)

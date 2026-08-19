@@ -33,7 +33,7 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Test
-        run: dotnet test --no-build --configuration Release --verbosity minimal --blame-hang-timeout 3m
+        run: dotnet test --no-build --configuration Release --verbosity minimal --filter "Category!=LocalOllama" --blame-hang-timeout 3m
         env:
           ASPNETCORE_ENVIRONMENT: CI
           DOTNET_ENVIRONMENT: CI

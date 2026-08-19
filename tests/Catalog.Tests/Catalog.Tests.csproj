@@ -1,7 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    
+    <RootNamespace>Moser.Enterprise.Blueprint.Catalog.Tests</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,11 +24,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Integration\API\" />
-    <Folder Include="Integration\Infrastructure\" />
+    <ProjectReference Include="..\..\src\Microservices\Catalog\Catalog.Domain\Catalog.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Microservices\Catalog\Catalog.Application\Catalog.Application.csproj" />
+    <ProjectReference Include="..\..\src\Microservices\Catalog\Catalog.Infrastructure\Catalog.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Microservices\Catalog\Catalog.API\Catalog.API.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Unit\Domain\" />
     <Folder Include="Unit\Application\" />
     <Folder Include="Unit\Infrastructure\" />
+    <Folder Include="Integration\API\" />
+    <Folder Include="Integration\Infrastructure\" />
   </ItemGroup>
 
 </Project>

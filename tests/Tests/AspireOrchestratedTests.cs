@@ -2,13 +2,21 @@ using System.Threading.Tasks;
 
 namespace Moser.Enterprise.Blueprint.Tests;
 
+// Original orchestrated test (native Ollama). CI skips Category=LocalOllama.
+// Active CI path: CiAspireOrchestratedTests.
 [Collection("DistributedAppTestCollection")]
+[Trait("Category", "LocalOllama")]
 public class AspireOrchestratedTests(DistributedAppTestFixture fixture)
 {
     [Fact]
     public async Task HealthCheck_ValidRequest_ShouldReturnResponse()
     {
-        var response = await fixture.HttpClient!.GetAsync("/");
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        // Act
+        //var response = await fixture._httpClient!.GetAsync("/");
+        var response2 = await fixture.HttpClient!.GetAsync("/");
+
+        // Assert
+        //Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response2.StatusCode);
     }
 }

@@ -1,48 +1,101 @@
 using Aspire.Hosting;
 
+using Microsoft.Extensions.Configuration;
+
+using Projects;
+
 using System;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using AppHost = Moser.Enterprise.Blueprint.AppHost;
 
+[assembly: CollectionBehavior(DisableTestParallelization = false)]
+
 namespace Moser.Enterprise.Blueprint.Tests;
 
-public sealed class DistributedAppTestFixture : IAsyncLifetime
+/// <summary>
+/// Original AppHost fixture (native Ollama + cert-bypass HttpClient).
+/// GitHub Actions / stub path: <see cref="CiDistributedAppTestFixture"/>.
+/// </summary>
+[Collection("DistributedAppTestCollection")]
+public class DistributedAppTestFixture : IAsyncLifetime
 {
-    private DistributedApplication? _app;
-
+    private DistributedApplication? _distributedApp { get; set; }
+    public IResourceCollection? Resources { get; private set; }
+    public IConfiguration? Configuration { get; private set; }
+    public ResourceNotificationService? ResourceNotificationService { get; private set; }
     public HttpClient? HttpClient { get; private set; }
+    public JsonSerializerOptions? JsonSerializerOptions { get; private set; }
 
     public async Task InitializeAsync()
     {
-        var builder = await DistributedApplicationTestingBuilder.CreateAsync<Projects.AppHost>(
-            ["Ollama:Enabled=false"]);
+        var distributedAppTestBuilder = await DistributedApplicationTestingBuilder
+            .CreateAsync<Projects.AppHost>();
 
-        builder.Services.Configure<DistributedApplicationOptions>(options =>
+        distributedAppTestBuilder.Services.Configure<DistributedApplicationOptions>(options =>
         {
             options.DisableDashboard = true;
         });
 
-        _app = await builder.BuildAsync();
-        var notifications = _app.Services.GetRequiredService<ResourceNotificationService>();
+        //Resources = distributedApplicationTestingBuilder.Resources
+        //    .Remove(r => r.Name == AppHost.Program.DeviceRegistryApiName)
+        //    .Remove(r => r.Name == AppHost.Program.CommunicationServiceApiName);
 
-        await _app.StartAsync().WaitAsync(TimeSpan.FromMinutes(3));
-        await notifications
+        _distributedApp = await distributedAppTestBuilder.BuildAsync();
+
+        ResourceNotificationService = _distributedApp.Services.GetRequiredService<ResourceNotificationService>();
+
+        Configuration = _distributedApp.Services.GetRequiredService<IConfiguration>();
+
+        await _distributedApp.StartAsync();
+
+        await ResourceNotificationService
             .WaitForResourceAsync(AppHost.Program.WebFrontendName, KnownResourceStates.Running)
-            .WaitAsync(TimeSpan.FromMinutes(3));
+            .WaitAsync(TimeSpan.FromSeconds(30));
 
-        HttpClient = _app.CreateHttpClient(AppHost.Program.WebFrontendName);
-        HttpClient.Timeout = TimeSpan.FromSeconds(30);
+        HttpClient = BuildCertBypassHttpClient();
+
+        JsonSerializerOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        //?Client = new ?ApiClient(this);
+    }
+
+    private HttpClient BuildCertBypassHttpClient()
+    {
+        var baseAddress = _distributedApp?.GetEndpoint(AppHost.Program.WebFrontendName, "http");
+
+        var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+
+        return new HttpClient(handler)
+        {
+            BaseAddress = baseAddress,
+            Timeout = TimeSpan.FromMinutes(3)
+        };
+    }
+
+    private HttpClient BuildDistributedAppHttpClient()
+    {
+        var httpClient = _distributedApp?.CreateHttpClient(AppHost.Program.WebFrontendName);
+        httpClient!.Timeout = TimeSpan.FromMinutes(3);
+        return httpClient;
     }
 
     public async Task DisposeAsync()
     {
         HttpClient?.Dispose();
-        if (_app is not null)
+
+        if (_distributedApp is not null)
         {
-            await _app.StopAsync();
-            await _app.DisposeAsync();
+            await _distributedApp.StopAsync();
+            await _distributedApp.DisposeAsync();
         }
     }
 }
