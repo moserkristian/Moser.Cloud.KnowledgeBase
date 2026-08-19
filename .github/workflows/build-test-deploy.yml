@@ -3,6 +3,8 @@ name: Build, Test and Deploy
 on:
   push:
     branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
 
 env:
   IMAGE_PREFIX: ${{ github.repository_owner }}/moser-enterprise-blueprint
@@ -37,6 +39,7 @@ jobs:
           DOTNET_ENVIRONMENT: CI
 
   docker-build:
+    if: github.event_name == 'push'
     needs: build-and-test
     runs-on: ubuntu-latest
 
@@ -91,6 +94,7 @@ jobs:
           docker push ghcr.io/${{ env.IMAGE_PREFIX }}/${IMAGE_NAME}:latest
 
   deploy:
+    if: github.event_name == 'push'
     needs: docker-build
     runs-on: ubuntu-latest
 
