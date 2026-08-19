@@ -29,7 +29,20 @@
     }
     .wrap { max-width: 1120px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
     header h1 { font-size: 1.75rem; letter-spacing: -0.03em; margin: 0 0 0.5rem; }
-    header p { color: var(--muted); margin: 0 0 1.25rem; max-width: 46rem; }
+    header p { color: var(--muted); margin: 0 0 0.75rem; max-width: 48rem; }
+    .primer { margin: 0 0 1.5rem; }
+    .primer h2 { font-size: 1.1rem; margin: 1.25rem 0 0.45rem; }
+    .primer ul { margin: 0.35rem 0 0; padding-left: 1.2rem; color: var(--muted); }
+    .primer li { margin: 0.25rem 0; }
+    table {
+      width: 100%; border-collapse: collapse; font-size: 0.92rem;
+      background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td { text-align: left; vertical-align: top; padding: 0.55rem 0.7rem; border-bottom: 1px solid var(--line); }
+    th { color: var(--muted); font-weight: 650; font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase; }
+    td:first-child { font-weight: 650; white-space: nowrap; width: 7rem; }
+    .glossary ul { margin: 0.4rem 0 0; padding-left: 1.2rem; color: var(--muted); }
     a { color: var(--accent); }
     .controls {
       display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
@@ -118,11 +131,64 @@
     <header>
       <h1>Ako ide otázka cez RAG v tomto projekte</h1>
       <p>
-        Nie je to čierna skrinka. Najprv sa politiky narežú a uložia (ingest).
-        Potom každá otázka hľadá podobné kúsky, model z nich napíše vetu
-        a <strong>Policy</strong> ešte môže povedať nie — aj keby model povedal áno.
+        Diagram ingest → index → retrieve → generate → policy znel ako zaklínadlo,
+        lebo to boli <strong>názvy krokov</strong>, nie veci, ktoré vieš chytiť.
+        V rúre nejde „RAG“. Ide konkrétny súbor, potom kúsok textu, potom kopka čísel,
+        potom otázka, potom odpoveď.
+      </p>
+      <p>
+        Nižšie je animovaná rúra: <strong>Prehrať / Ďalší krok</strong>, scenáre
+        Allow / Deny / NeedsHuman, prepínač Ollama vs stub.
+        V pakete uvidíš reálny <code>refund-standard.md</code>, chunk, vektor, triedu aj súbor.
       </p>
     </header>
+
+    <section class="primer" id="kartoteka">
+      <h2>Ako si to predstaviť — firemná kartotéka, nie mágia</h2>
+      <table>
+        <thead>
+          <tr><th>Krok</th><th>Čo to je jednou vetou</th><th>Analógia</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Ingest</td>
+            <td>Pri štarte Web sa politiky načítajú do systému. Ešte sa nikto nepýta.</td>
+            <td>Niečo skopíruješ do kartotéky.</td>
+          </tr>
+          <tr>
+            <td>Chunk</td>
+            <td>Dlhý <code>.md</code> sa nareže na odstavce.</td>
+            <td>Celý šanón nestrčíš do vrecka; vystrihneš lístok „14 dní“.</td>
+          </tr>
+          <tr>
+            <td>Embed</td>
+            <td>Lístok sa premení na kopku čísel („smer významu“).</td>
+            <td>Lístok dostane GPS súradnice.</td>
+          </tr>
+          <tr>
+            <td>Index</td>
+            <td>Tie lístky + čísla sa uložia. Toto je vector store.</td>
+            <td>Zásuvka s kartičkami. Teraz v RAM, neskôr pgvector.</td>
+          </tr>
+          <tr>
+            <td>Retrieve</td>
+            <td>Otázka dostane tiež GPS a vytiahnu sa najbližšie lístky.</td>
+            <td>„Daj mi 5 kariet najbližšie k tejto otázke.“</td>
+          </tr>
+          <tr>
+            <td>Generate</td>
+            <td>LLM napíše vetu <em>len</em> z tých kariet.</td>
+            <td>Intern môže použiť len to, čo leží na stole.</td>
+          </tr>
+          <tr>
+            <td>Policy</td>
+            <td>C# <em>po</em> modeli. Vie povedať Deny, aj keď intern povedal áno.</td>
+            <td>Strážnik pri dverách. Model ho nevie prepísať.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>Dva časy: horný rad (ingest) sa stane <strong>raz pri štarte</strong>. Dolný rad (ask) pri <strong>každej otázke</strong>.</p>
+    </section>
 
     <div class="controls">
       <button class="primary" id="play" type="button">Prehrať</button>
@@ -171,52 +237,57 @@
     </div>
 
     <section class="glossary">
-      <h2>Slová, ktoré predtým znelo ako zaklínadlo</h2>
+      <h2>Čo ešte treba vedieť, keď zavrieš chat</h2>
       <details open>
-        <summary>Čo je stub?</summary>
+        <summary>Čo je stub? Áno — fejk. Zámerne.</summary>
         <p>
-          Stub je <strong>náhradný fejk</strong>, nie druhý AI model. Appka potrebuje dve veci:
-          premeniť text na čísla (embedding) a napísať vetu (chat). Ak Ollama pri štarte Web
-          nebeží na <code>127.0.0.1:11434</code>, <code>AiClientFactory</code> namiesto skutočných
-          modelov zapojí <code>StubEmbeddingGenerator</code> (hash zo slov, 64 čísel) a
-          <code>StubChatClient</code> (vyberie vety z kontextu, ktoré zdieľajú slová s otázkou).
-          Preto sa appka spustí aj bez GPU. Evaly v <code>Assistant.Evals</code> zámerne idú cez stub,
-          aby testy nevolali sieť. Keď <code>/assistant/status</code> ukáže <code>provider=stub</code>,
-          nemáš RAG s llama — máš offline náhradu, aby sa dalo vyvíjať.
+          Appka potrebuje dve služby: „text → čísla“ a „napíš vetu“.
+          Ak Ollama pri štarte Web nebeží na <code>127.0.0.1:11434</code>,
+          <code>AiClientFactory</code> namiesto llama/nomic zapojí:
+        </p>
+        <ul>
+          <li><code>StubEmbeddingGenerator</code> — hash zo slov, 64 čísel, <em>nie</em> význam</li>
+          <li><code>StubChatClient</code> — vyberie vety z kontextu, ktoré zdieľajú slová s otázkou, <em>nie</em> LLM</li>
+        </ul>
+        <p>
+          Preto sa Web spustí aj bez modelu a evaly v <code>Assistant.Evals</code> nevolajú sieť.
+          Keď <code>/assistant/status</code> ukáže <code>provider=stub</code>, nemáš lokálne AI.
+          Máš náhradníka, aby sa dalo vyvíjať. Keď tam je <code>ollama</code>, ide to cez skutočné váhy.
         </p>
       </details>
       <details>
-        <summary>Ingest</summary>
-        <p>Načítanie zdrojov do systému. Tu: prečítať <code>data/seed/policy/*.md</code>, narezať, embednúť, uložiť. Nie je to otázka používateľa — deje sa pri štarte.</p>
-      </details>
-      <details>
-        <summary>Chunk</summary>
-        <p>Kúsok dokumentu, nie celý súbor. Ľahšie sa hľadá „14 dní“ v jednom odstavci, ako v 20 politikách naraz. Teraz to robí <code>MediTokenChunker</code> (max ~640 tokenov).</p>
-      </details>
-      <details>
-        <summary>Embed / vektor</summary>
-        <p>Zoznam čísel, ktorý zachytáva význam textu. Podobné vety majú podobné čísla. Ollama: <code>nomic-embed-text</code>. Stub: počítadlo slov. Preto stub potrebuje aj lexikálny filter v handleri.</p>
-      </details>
-      <details>
-        <summary>Index (vector store)</summary>
-        <p>Sklad tých kúskov + vektorov. Hľadanie = „ktorých 5 vektorov je najbližšie k vektoru otázky“. Teraz <code>InMemoryDocumentIndex</code> (zmizne s procesom Web). Produkcia: pgvector / Qdrant + ACL. Swap je rozhranie <code>IDocumentIndex</code>.</p>
-      </details>
-      <details>
-        <summary>Retrieve → generate → policy</summary>
+        <summary>Ako by sa to volalo pri reálnych firemných dátach</summary>
+        <p>Nie Assistant. Bežný tvar:</p>
+        <ul>
+          <li><strong>Knowledge</strong> — modul</li>
+          <li><strong>Connectors</strong> — SharePoint, fileshare, Confluence, export z HR/Finance</li>
+          <li><strong>Ingest / Indexer</strong> — narezať + embednúť + uložiť</li>
+          <li><strong>Retriever / Generator / Guardrail</strong> — to, čo už máš ako Ask + Policy</li>
+          <li><strong>DocumentSync</strong> — sleduje zmeny</li>
+          <li><strong>AuditLog</strong> — kto sa pýtal, z čoho sa odpovedalo</li>
+          <li><strong>VectorStore</strong> — dnes InMemory, neskôr pgvector (<code>IDocumentIndex</code> ostáva švík)</li>
+        </ul>
         <p>
-          Retrieve = nájdi kúsky. Generate = LLM napíše odpoveď len z nich.
-          Policy = C# pravidlá <em>po</em> modeli. LLM nesmie prepísať Deny.
+          Áno, má bežať sync: zmení sa jeden súbor → <em>len ten</em> sa znova nareže a upsertne.
+          Nie full reindex celej firmy a nie 12 helper metód na každú chybu.
         </p>
       </details>
       <details>
-        <summary>Ako by sa to volalo pri reálnych firemných dátach?</summary>
-        <p>
-          Nie Assistant. Bežné mená: <strong>Knowledge</strong> (modul), <strong>Connectors</strong> (SharePoint, fileshare, Confluence),
-          <strong>Ingest / Indexer</strong>, <strong>Retriever</strong>, <strong>Generator</strong>, <strong>Guardrail</strong>,
-          <strong>DocumentSync</strong> (sleduje zmeny), <strong>AuditLog</strong>, <strong>VectorStore</strong>.
-          Áno — má bežať služba, ktorá pri zmene súboru <em>len ten súbor</em> znova nareže a upsertne.
-          Nie full reindex celej firmy a nie „LLM nech opraví chybu 12 helper metódami“.
-        </p>
+        <summary>Čo je v tomto prototipe zmenené (veľký DDD refactor nie)</summary>
+        <ul>
+          <li>Status: provider, model, chunky, ingest. Žiadny pull modelov, žiadny ask log v procese.</li>
+          <li><code>OllamaGateway</code>: probe + normalizácia endpointu. Pull preč.</li>
+          <li>UI: tichší layout (žiadny fialový gradient / „dopamine“ CSS).</li>
+          <li><code>Assistant:VectorStore=InMemory</code> — neskôr PgVector cez to isté <code>IDocumentIndex</code>. Cloud/Ollama/stub v factory ostáva.</li>
+        </ul>
+        <p>Keď spustíš Web, v menu je Tok RAG. Klikni Prehrať a sleduj paket — to je ten diagram, len s reálnymi vecami namiesto šípok.</p>
+      </details>
+      <details>
+        <summary>Ingest / chunk / embed / index (skrátene)</summary>
+        <p>Ingest: prečítať <code>data/seed/policy/*.md</code>, narezať, embednúť, uložiť — pri štarte, nie pri otázke.</p>
+        <p>Chunk: kúsok dokumentu (<code>MediTokenChunker</code>, ~640 tokenov), nie celý šanón.</p>
+        <p>Embed: čísla významu. Ollama = <code>nomic-embed-text</code>. Stub = hash slov (preto lexikálny filter v handleri).</p>
+        <p>Index: <code>InMemoryDocumentIndex</code>, umrie s procesom Web. Swap = <code>IDocumentIndex</code>.</p>
       </details>
     </section>
 
