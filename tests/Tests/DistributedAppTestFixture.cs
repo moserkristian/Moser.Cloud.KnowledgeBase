@@ -45,7 +45,7 @@ public class DistributedAppTestFixture : IAsyncLifetime
 
         Configuration = _distributedApp.Services.GetRequiredService<IConfiguration>();
 
-        await _distributedApp.StartAsync();
+        await _distributedApp.StartAsync().WaitAsync(TimeSpan.FromMinutes(2));
 
         await ResourceNotificationService
             .WaitForResourceAsync(AppHost.Program.WebFrontendName, KnownResourceStates.Running)

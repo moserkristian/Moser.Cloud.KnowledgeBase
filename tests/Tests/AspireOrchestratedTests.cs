@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 namespace Moser.Enterprise.Blueprint.Tests;
 
 [Collection("DistributedAppTestCollection")]
+[Trait("Category", "Distributed")]
 public class AspireOrchestratedTests(DistributedAppTestFixture fixture)
 {
     [Fact]

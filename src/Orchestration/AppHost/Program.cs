@@ -34,7 +34,6 @@ public static class Program
             .WithReference(catalogApi)
             .WaitFor(catalogApi)
             .WithReference(ollama)
-            .WaitFor(ollama)
             .WithEnvironment("OLLAMA_ENDPOINT", OllamaUrl)
             .WithEnvironment("OLLAMA_CHAT_MODEL", "llama3.2")
             .WithEnvironment("OLLAMA_EMBED_MODEL", "nomic-embed-text");
