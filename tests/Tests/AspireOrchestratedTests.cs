@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 namespace Moser.Enterprise.Blueprint.Tests;
 
 [Collection("DistributedAppTestCollection")]
-[Trait("Category", "LocalOllama")]
 public class AspireOrchestratedTests(DistributedAppTestFixture fixture)
 {
     [Fact]
