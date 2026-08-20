@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Enterprise.Blueprint.Ingestion.Application;
+namespace Moser.RagAi.Ingestion.Application;
 
 public sealed record IngestSeed(string? SeedDirectory = null, bool IncludeFaqs = true);
 

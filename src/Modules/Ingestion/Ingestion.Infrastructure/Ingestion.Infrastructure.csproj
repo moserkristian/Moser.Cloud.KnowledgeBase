@@ -1,11 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>Moser.Enterprise.Blueprint.Ingestion.Infrastructure</RootNamespace>
+    <RootNamespace>Moser.RagAi.Ingestion.Infrastructure</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.VectorData.InMemory" />
+    <PackageReference Include="Microsoft.Bcl.Memory" />
     <PackageReference Include="Microsoft.Extensions.AI" />
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.DataIngestion" />

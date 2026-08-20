@@ -1,35 +1,17 @@
-using Moser.Enterprise.Blueprint.Assistant.Infrastructure;
-using Moser.Enterprise.Blueprint.Web;
+using Moser.RagAi.Assistant.Infrastructure;
+using Moser.RagAi.Web.Components;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-using System;
-using Web.Components;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
-builder.AddRedisOutputCache("cache");
 builder.AddAssistant();
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
-
-builder.Services.AddHttpClient<PeopleApiClient>(client =>
-{
-    var peopleApiUrl = builder.Configuration["PeopleApi:BaseUrl"];
-
-    if (!string.IsNullOrEmpty(peopleApiUrl))
-    {
-        client.BaseAddress = new Uri(peopleApiUrl);
-    }
-    else
-    {
-        client.BaseAddress = new Uri("https+http://people-api");
-    }
-});
 
 var app = builder.Build();
 

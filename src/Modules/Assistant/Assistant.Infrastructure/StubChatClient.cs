@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Enterprise.Blueprint.Assistant.Infrastructure;
+namespace Moser.RagAi.Assistant.Infrastructure;
 
 internal sealed class StubChatClient : IChatClient
 {

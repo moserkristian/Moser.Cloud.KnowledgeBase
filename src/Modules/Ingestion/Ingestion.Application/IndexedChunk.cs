@@ -1,6 +1,6 @@
 using System;
 
-namespace Moser.Enterprise.Blueprint.Ingestion.Application;
+namespace Moser.RagAi.Ingestion.Application;
 
 public sealed class IndexedChunk
 {

@@ -1,6 +1,6 @@
 using Microsoft.Extensions.VectorData;
 
-using Moser.Enterprise.Blueprint.Ingestion.Application;
+using Moser.RagAi.Ingestion.Application;
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Enterprise.Blueprint.Ingestion.Infrastructure;
+namespace Moser.RagAi.Ingestion.Infrastructure;
 
 internal sealed class InMemoryDocumentIndex : IDocumentIndex
 {

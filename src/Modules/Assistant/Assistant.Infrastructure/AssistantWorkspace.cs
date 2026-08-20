@@ -1,14 +1,14 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
-using Moser.Enterprise.Blueprint.Assistant.Application;
-using Moser.Enterprise.Blueprint.Ingestion.Application;
+using Moser.RagAi.Assistant.Application;
+using Moser.RagAi.Ingestion.Application;
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Enterprise.Blueprint.Assistant.Infrastructure;
+namespace Moser.RagAi.Assistant.Infrastructure;
 
 internal sealed class AssistantWorkspace : IAssistantWorkspace
 {

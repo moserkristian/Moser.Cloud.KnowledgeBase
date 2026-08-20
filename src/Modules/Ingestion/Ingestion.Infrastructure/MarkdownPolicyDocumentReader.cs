@@ -1,4 +1,4 @@
-using Moser.Enterprise.Blueprint.Ingestion.Application;
+using Moser.RagAi.Ingestion.Application;
 
 using System.Collections.Generic;
 using System.IO;
@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Enterprise.Blueprint.Ingestion.Infrastructure;
+namespace Moser.RagAi.Ingestion.Infrastructure;
 
 internal sealed class MarkdownPolicyDocumentReader : IPolicyDocumentReader
 {

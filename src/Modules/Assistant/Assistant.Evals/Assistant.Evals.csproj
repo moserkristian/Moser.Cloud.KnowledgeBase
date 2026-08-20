@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>Moser.Enterprise.Blueprint.Assistant.Evals</RootNamespace>
+    <RootNamespace>Moser.RagAi.Assistant.Evals</RootNamespace>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>

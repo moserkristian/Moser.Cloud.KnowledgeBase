@@ -4,11 +4,11 @@ using Microsoft.Extensions.VectorData;
 
 using CommunityToolkit.VectorData.InMemory;
 
-using Moser.Enterprise.Blueprint.Ingestion.Application;
+using Moser.RagAi.Ingestion.Application;
 
 using System;
 
-namespace Moser.Enterprise.Blueprint.Ingestion.Infrastructure;
+namespace Moser.RagAi.Ingestion.Infrastructure;
 
 public static class IngestionServiceCollectionExtensions
 {

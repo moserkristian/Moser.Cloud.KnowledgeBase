@@ -1,11 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>Moser.Enterprise.Blueprint.BuildingBlocks.API</RootNamespace>
+    <RootNamespace>Moser.RagAi.BuildingBlocks.API</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\BuildingBlocks.Infrastructure\BuildingBlocks.Infrastructure.csproj" />
-  </ItemGroup>
 
 </Project>

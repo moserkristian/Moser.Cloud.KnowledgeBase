@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <Sdk Name="Aspire.AppHost.Sdk" />
-  
+
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <IsAspireHost>true</IsAspireHost>
@@ -9,12 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.Hosting.PostgreSQL" />
-    <PackageReference Include="Aspire.Hosting.Redis" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\Microservices\People\People.API\People.API.csproj" />
     <ProjectReference Include="..\..\Web\Web.csproj" />
   </ItemGroup>
 

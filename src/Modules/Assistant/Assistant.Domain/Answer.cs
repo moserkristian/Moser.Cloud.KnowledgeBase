@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Moser.Enterprise.Blueprint.Assistant.Domain;
+namespace Moser.RagAi.Assistant.Domain;
 
 public sealed record Answer
 {

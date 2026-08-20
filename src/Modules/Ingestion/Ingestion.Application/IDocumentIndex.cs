@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Enterprise.Blueprint.Ingestion.Application;
+namespace Moser.RagAi.Ingestion.Application;
 
 /// <summary>
 /// Vector store seam written by ingest and read by Assistant.

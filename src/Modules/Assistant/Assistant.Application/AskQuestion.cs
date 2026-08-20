@@ -1,9 +1,9 @@
-using Moser.Enterprise.Blueprint.Assistant.Domain;
+using Moser.RagAi.Assistant.Domain;
 
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Enterprise.Blueprint.Assistant.Application;
+namespace Moser.RagAi.Assistant.Application;
 
 public sealed record AskQuestion(string Text);
 

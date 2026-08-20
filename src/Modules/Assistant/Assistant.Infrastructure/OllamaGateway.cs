@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Enterprise.Blueprint.Assistant.Infrastructure;
+namespace Moser.RagAi.Assistant.Infrastructure;
 
 internal static class OllamaGateway
 {

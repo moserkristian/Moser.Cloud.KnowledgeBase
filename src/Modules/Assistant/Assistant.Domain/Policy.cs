@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Moser.Enterprise.Blueprint.Assistant.Domain;
+namespace Moser.RagAi.Assistant.Domain;
 
 public static class Policy
 {

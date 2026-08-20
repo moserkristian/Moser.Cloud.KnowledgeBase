@@ -1,29 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    
+    <RootNamespace>Moser.RagAi.Web</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Aspire.StackExchange.Redis.OutputCaching" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\BuildingBlocks\BuildingBlocks.Domain\BuildingBlocks.Domain.csproj" />
     <ProjectReference Include="..\Modules\Assistant\Assistant.Infrastructure\Assistant.Infrastructure.csproj" />
     <ProjectReference Include="..\Orchestration\ServiceDefaults\ServiceDefaults.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="..\..\data\seed\policy\**\*.md" Link="data\seed\policy\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Abstractions\" />
-    <Folder Include="Hubs\" />
-    <Folder Include="Models\" />
-    <Folder Include="Pages\" />
-    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>

@@ -7,7 +7,7 @@ using System;
 using System.ClientModel;
 using System.Net.Http;
 
-namespace Moser.Enterprise.Blueprint.Assistant.Infrastructure;
+namespace Moser.RagAi.Assistant.Infrastructure;
 
 internal static class AiClientFactory
 {

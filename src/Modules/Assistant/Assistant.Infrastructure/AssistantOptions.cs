@@ -1,4 +1,4 @@
-namespace Moser.Enterprise.Blueprint.Assistant.Infrastructure;
+namespace Moser.RagAi.Assistant.Infrastructure;
 
 public sealed class AssistantOptions
 {

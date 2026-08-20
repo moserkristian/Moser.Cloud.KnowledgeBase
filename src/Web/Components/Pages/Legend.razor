@@ -6,7 +6,7 @@
     <p class="eyebrow">Knowledge</p>
     <h1>Legend</h1>
     <p>
-        Terms used on Ask, Status, People, and the
+        Terms used on Ask, Status, and the
         <a href="/rag-pipeline.html">RAG flow</a> animation.
     </p>
 
@@ -34,27 +34,11 @@
         <dd>Which source file a retrieved chunk came from.</dd>
     </dl>
 
-    <h2>Hosting</h2>
+    <h2>This app</h2>
     <dl>
-        <dt>Module</dt>
-        <dd>Library hosted inside another process. Assistant (ask + policy) and Ingestion (read/chunk/embed) both live in Web today.</dd>
-        <dt>Worker</dt>
-        <dd>Background process that runs jobs (fetch, chunk, embed). Other apps do not call it on every click.</dd>
-        <dt>Microservice</dt>
-        <dd>Long-running API with its own URL, health, and deploy. Exists when other systems need a stable contract, or when the work must scale and fail on its own.</dd>
-        <dt>Replica</dt>
-        <dd>Another instance of the same service behind a load balancer. Use when the API is stateless and many employees hit it at once.</dd>
-        <dt>Control plane</dt>
-        <dd>Settings that must stay editable if a job crashes: source paths, enable/disable, last error, retry.</dd>
-    </dl>
-
-    <h2>This intranet</h2>
-    <dl>
-        <dt>People</dt>
-        <dd>Employee directory microservice. Read-only, identical data on every replica — safe to scale out.</dd>
         <dt>Ingestion module</dt>
-        <dd>Turns files into chunks + embeddings. Not an API. A worker would host this later.</dd>
+        <dd>Turns files into chunks + embeddings. Hosted inside Web.</dd>
         <dt>Assistant module</dt>
-        <dd>Ask + Policy inside Web. Becomes an API when a second client (Teams bot) appears.</dd>
+        <dd>Ask + Policy inside Web. Answers only from retrieved chunks.</dd>
     </dl>
 </section>

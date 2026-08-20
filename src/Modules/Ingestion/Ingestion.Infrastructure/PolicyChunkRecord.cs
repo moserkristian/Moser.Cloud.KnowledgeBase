@@ -2,7 +2,7 @@ using Microsoft.Extensions.VectorData;
 
 using System;
 
-namespace Moser.Enterprise.Blueprint.Ingestion.Infrastructure;
+namespace Moser.RagAi.Ingestion.Infrastructure;
 
 internal sealed class PolicyChunkRecord
 {

@@ -557,7 +557,7 @@
     <table class="t">
       <thead><tr><th>Firma / orgán</th><th>Čo</th><th>Kde</th><th>Prečo</th><th>Kedy</th></tr></thead>
       <tbody>
-        <tr><td>Moser Blueprint</td><td>Policy assistant</td><td>Intranet, tento repo</td><td>Učiť tok súbor→chunk→index→policy</td><td>PoC kedykoľvek</td></tr>
+        <tr><td>Moser.RagAi</td><td>Policy assistant</td><td>Intranet, tento repo</td><td>Učiť tok súbor→chunk→index→policy</td><td>PoC kedykoľvek</td></tr>
         <tr><td>Slovak Telekom</td><td>Field / call assist</td><td>Intranet + CRM tool</td><td>Tarify a poruchy sú v textoch aj v ticketoch</td><td>Po zjednotení knowledge base</td></tr>
         <tr><td>Allianz / Generali SK</td><td>Likvidácia škôd</td><td>Intranet likvidátorov</td><td>Metodiky + poistné podmienky</td><td>Pred sezónou (kroupy, povodne)</td></tr>
         <tr><td>VÚB / Slovenská sporiteľňa</td><td>Product + compliance copilot</td><td>Intranet, never public</td><td>MiFID, AML texty vs. otázka bankára</td><td>Po DLP a ACL</td></tr>
@@ -760,7 +760,7 @@
   </article>
 
   <footer>
-    Samostatná kapitola k Moser.Enterprise.Blueprint. Dashboard je schématický model tokov, nie meranie produkcie.
+    Samostatná kapitola k Moser.RagAi. Dashboard je schématický model tokov, nie meranie produkcie.
     Súvisiace: <span class="mono">src/Web/wwwroot/rag-pipeline.html</span> (tok tohto PoC). Otvorte tento súbor v prehliadači — žiadny server netreba.
   </footer>
 </main>
@@ -770,8 +770,8 @@
 const SCENARIOS = {
   blueprint: {
     id: "blueprint",
-    name: "Moser Blueprint — interný policy assistant",
-    company: "Moser.Enterprise.Blueprint",
+    name: "Moser.RagAi — interný policy assistant",
+    company: "Moser.RagAi",
     verdict: "good",
     verdictText: "VHODNÉ · PoC / SMB intranet",
     desc: "Kde: intranet vývojárskeho tenantu. Kto: vývojári a knowledge workeri. Klient: malý. Dáta: desiatky markdown politík, takmer statické. Prečo: naučiť ingest→chunk→embed→policy. Kedy: teraz, ako referencia.",

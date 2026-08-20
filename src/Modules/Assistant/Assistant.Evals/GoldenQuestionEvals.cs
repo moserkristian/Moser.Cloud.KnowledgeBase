@@ -3,17 +3,17 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 
-using Moser.Enterprise.Blueprint.Assistant.Application;
-using Moser.Enterprise.Blueprint.Assistant.Domain;
-using Moser.Enterprise.Blueprint.Assistant.Infrastructure;
-using Moser.Enterprise.Blueprint.Ingestion.Application;
+using Moser.RagAi.Assistant.Application;
+using Moser.RagAi.Assistant.Domain;
+using Moser.RagAi.Assistant.Infrastructure;
+using Moser.RagAi.Ingestion.Application;
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Moser.Enterprise.Blueprint.Assistant.Evals;
+namespace Moser.RagAi.Assistant.Evals;
 
 public sealed class GoldenQuestionEvals
 {

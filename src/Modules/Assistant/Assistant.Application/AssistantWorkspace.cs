@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Enterprise.Blueprint.Assistant.Application;
+namespace Moser.RagAi.Assistant.Application;
 
 public sealed record AssistantStatus(
     string Provider,

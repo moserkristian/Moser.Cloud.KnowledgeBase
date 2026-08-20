@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>Moser.Enterprise.Blueprint.Ingestion.Application</RootNamespace>
+    <RootNamespace>Moser.RagAi.Ingestion.Application</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

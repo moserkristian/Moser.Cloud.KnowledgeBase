@@ -1,8 +1,8 @@
-using Moser.Enterprise.Blueprint.Assistant.Domain;
+using Moser.RagAi.Assistant.Domain;
 
 using System.Collections.Generic;
 
-namespace Moser.Enterprise.Blueprint.Assistant.UnitTests;
+namespace Moser.RagAi.Assistant.UnitTests;
 
 public sealed class PolicyTests
 {

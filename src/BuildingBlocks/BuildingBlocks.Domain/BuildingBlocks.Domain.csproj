@@ -1,7 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <RootNamespace>Moser.Enterprise.Blueprint.BuildingBlocks.Domain</RootNamespace>
-  </PropertyGroup>
-
-</Project>

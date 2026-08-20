@@ -2,12 +2,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-using Moser.Enterprise.Blueprint.Assistant.Application;
-using Moser.Enterprise.Blueprint.Ingestion.Infrastructure;
+using Moser.RagAi.Assistant.Application;
+using Moser.RagAi.Ingestion.Infrastructure;
 
 using System;
 
-namespace Moser.Enterprise.Blueprint.Assistant.Infrastructure;
+namespace Moser.RagAi.Assistant.Infrastructure;
 
 public static class AssistantServiceCollectionExtensions
 {

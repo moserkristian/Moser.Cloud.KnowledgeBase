@@ -3,16 +3,19 @@
 <PageTitle>Home</PageTitle>
 
 <section class="home">
-    <p class="eyebrow">Moser Enterprise Blueprint</p>
+    <p class="eyebrow">Moser.RagAi</p>
     <h1>Intranet policy RAG</h1>
     <p>
-        At startup, policy files are split, embedded, and stored in memory in this Web process.
+        At startup, policy files are split, embedded, and stored in this Web process.
         A question finds similar slices; the model answers from those slices; Policy can still Deny.
-        People is a separate API so the employee directory can scale independently of Blazor circuits.
     </p>
+    <ol>
+        <li><strong>Ingest</strong> — read <code>data/seed/policy</code>, chunk, embed, index.</li>
+        <li><strong>Retrieve</strong> — embed the question and pull the nearest chunks.</li>
+        <li><strong>Generate</strong> — the model writes from those chunks; C# Policy can Deny or send to a human.</li>
+    </ol>
     <p>
         <a href="/assistant/ask">Ask</a>
-        · <a href="/people">People</a>
         · <a href="/assistant/status">Index status</a>
         · <a href="/legend">Legend</a>
         · <a href="/rag-pipeline.html">Animated flow (ingest → index → retrieve → generate → policy)</a>

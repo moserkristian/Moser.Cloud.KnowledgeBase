@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>Moser.Enterprise.Blueprint.Assistant.Domain</RootNamespace>
+    <RootNamespace>Moser.RagAi.Assistant.Domain</RootNamespace>
   </PropertyGroup>
 
 </Project>

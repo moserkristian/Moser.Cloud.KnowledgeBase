@@ -1,7 +1,7 @@
 using Microsoft.Extensions.AI;
 
-using Moser.Enterprise.Blueprint.Assistant.Domain;
-using Moser.Enterprise.Blueprint.Ingestion.Application;
+using Moser.RagAi.Assistant.Domain;
+using Moser.RagAi.Ingestion.Application;
 
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Moser.Enterprise.Blueprint.Assistant.Application;
+namespace Moser.RagAi.Assistant.Application;
 
 public sealed class AskQuestionHandler : IAskQuestion
 {
