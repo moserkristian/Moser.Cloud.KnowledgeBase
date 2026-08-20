@@ -1,5 +1,9 @@
 @page "/assistant/ask"
 @rendermode InteractiveServer
+@implements IDisposable
+@using System
+@using System.Collections.Generic
+@using System.Threading
 @inject IAskQuestion Assistant
 @inject AssistantRuntimeInfo Runtime
 
@@ -10,8 +14,8 @@
         <p class="eyebrow">Knowledge</p>
         <h1>Policy assistant</h1>
         <p>
-            Answers come only from retrieved chunks (slices of policy text). Policy can Deny even if the model says yes.
-            <a href="/rag-pipeline.html">Show the ingest → index → retrieve → generate → policy flow</a>
+            Answers come only from retrieved chunks. Tokens stream as the model writes; Policy can still Deny after the last token.
+            <a href="/legend">How RAG works here</a>
         </p>
         <p class="ask-meta">
             <code>@Runtime.Provider</code>
@@ -39,7 +43,7 @@
 
     <div class="ask-actions">
         <button type="button" class="btn btn-primary" @onclick="Submit" disabled="@busy">
-            @(busy ? "Searching…" : "Ask")
+            @(busy ? PhaseLabel : "Ask")
         </button>
     </div>
 
@@ -48,29 +52,43 @@
         <div class="ask-error" role="alert">@error</div>
     }
 
-    @if (answer is not null)
+    @if (busy || answer is not null)
     {
         <article class="ask-result @DecisionTone(answer)" aria-live="polite">
             <div class="ask-status">
-                <span class="badge @DecisionBadge(answer.Decision)">@answer.Decision</span>
-                @if (answer.Refused)
+                @if (answer is not null)
                 {
-                    <span class="badge badge-primary">Refuse</span>
+                    <span class="badge @DecisionBadge(answer.Decision)">@answer.Decision</span>
+                    @if (answer.Refused)
+                    {
+                        <span class="badge badge-primary">Refuse</span>
+                    }
+                    <span>@DecisionHint(answer)</span>
                 }
-                <span>@DecisionHint(answer)</span>
+                else
+                {
+                    <span class="ask-phase">@PhaseLabel</span>
+                }
             </div>
 
             <h2>Answer</h2>
-            <p class="ask-answer">@answer.Text</p>
-
-            <h2>Citations @(answer.Citations.Count is 0 ? "" : $"({answer.Citations.Count})")</h2>
-            @if (answer.Citations.Count == 0)
+            @if (string.IsNullOrEmpty(draft) && answer is null)
             {
-                <p class="ask-empty">No chunks — refuse or empty index.</p>
+                <p class="ask-empty">Retrieving similar policy chunks…</p>
             }
             else
             {
-                @foreach (var citation in answer.Citations)
+                <p class="ask-answer">@(answer?.Text ?? draft)</p>
+            }
+
+            <h2>Citations @(citations.Count is 0 ? "" : $"({citations.Count})")</h2>
+            @if (citations.Count == 0)
+            {
+                <p class="ask-empty">@(busy ? "Waiting for retrieve." : "No chunks — refuse or empty index.")</p>
+            }
+            else
+            {
+                @foreach (var citation in citations)
                 {
                     <details>
                         <summary>@citation.Source</summary>
@@ -93,8 +111,19 @@
 
     private string question = "";
     private Answer? answer;
+    private IReadOnlyList<Citation> citations = [];
+    private string? draft;
+    private AskStage stage = AskStage.Done;
     private string? error;
     private bool busy;
+    private CancellationTokenSource? askCts;
+
+    private string PhaseLabel => stage switch
+    {
+        AskStage.Retrieving => "Retrieving…",
+        AskStage.Generating => "Writing…",
+        _ => "Ask"
+    };
 
     private Task UseSample(string sample)
     {
@@ -108,17 +137,47 @@
     private async Task Submit()
     {
         error = null;
-        answer = null;
         if (string.IsNullOrWhiteSpace(question))
         {
             error = "Enter a question.";
             return;
         }
 
+        askCts?.Cancel();
+        askCts?.Dispose();
+        askCts = new CancellationTokenSource();
+        var token = askCts.Token;
+
         busy = true;
+        answer = null;
+        draft = null;
+        citations = [];
+        stage = AskStage.Retrieving;
         try
         {
-            answer = await Assistant.Handle(new AskQuestion(question.Trim()));
+            await foreach (var update in Assistant.StreamAsync(new AskQuestion(question.Trim()), token))
+            {
+                stage = update.Stage;
+                if (update.Text is not null)
+                {
+                    draft = update.Text;
+                }
+
+                if (update.Citations.Count > 0)
+                {
+                    citations = update.Citations;
+                }
+
+                if (update.Completed is not null)
+                {
+                    answer = update.Completed;
+                }
+
+                StateHasChanged();
+            }
+        }
+        catch (OperationCanceledException)
+        {
         }
         catch (Exception ex)
         {
@@ -138,14 +197,21 @@
         _ => "badge-primary"
     };
 
-    private static string DecisionTone(Answer value)
-        => value.Refused ? "is-refuse" : value.Decision.ToString().ToLowerInvariant() switch
+    private static string DecisionTone(Answer? value)
+    {
+        if (value is null)
+        {
+            return "";
+        }
+
+        return value.Refused ? "is-refuse" : value.Decision.ToString().ToLowerInvariant() switch
         {
             "allow" => "is-allow",
             "deny" => "is-deny",
             "needshuman" => "is-human",
             _ => ""
         };
+    }
 
     private static string DecisionHint(Answer value)
     {
@@ -161,5 +227,11 @@
             PolicyDecision.NeedsHuman => "Conflicting sources — a human decides.",
             _ => ""
         };
+    }
+
+    public void Dispose()
+    {
+        askCts?.Cancel();
+        askCts?.Dispose();
     }
 }

@@ -5,9 +5,8 @@ Intranet policy assistant: RAG (retrieval-augmented generation) plus a C# policy
 ## Layout
 
 *   **`src/Modules/Ingestion`** — read `.md` → chunk → embed → upsert into the index.
-*   **`src/Modules/Assistant`** — ask, retrieve, generate, Policy guardrail.
+*   **`src/Modules/Assistant`** — ask, retrieve, stream generate, Policy guardrail.
 *   **`src/Web`** — Blazor UI. Hosts both modules.
-*   **`src/BuildingBlocks/BuildingBlocks.API`** — reserved API primitives (empty for now).
 
 ## Run
 

@@ -95,6 +95,7 @@
 
 .ask-answer { white-space: pre-wrap; }
 .ask-empty { color: var(--muted); }
+.ask-phase { color: var(--muted); font-weight: 600; }
 
 .ask-result details {
     border-top: 1px solid var(--line);

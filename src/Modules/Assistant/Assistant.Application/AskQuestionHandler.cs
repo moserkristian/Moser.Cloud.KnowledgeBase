@@ -6,6 +6,7 @@ using Moser.RagAi.Ingestion.Application;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,8 +34,26 @@ public sealed class AskQuestionHandler : IAskQuestion
 
     public async Task<Answer> Handle(AskQuestion query, CancellationToken cancellationToken = default)
     {
+        Answer? completed = null;
+        await foreach (var update in StreamAsync(query, cancellationToken).ConfigureAwait(false))
+        {
+            if (update.Completed is not null)
+            {
+                completed = update.Completed;
+            }
+        }
+
+        return completed ?? throw new InvalidOperationException("Ask stream ended without an answer.");
+    }
+
+    public async IAsyncEnumerable<AskUpdate> StreamAsync(
+        AskQuestion query,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
         ArgumentNullException.ThrowIfNull(query);
         ArgumentException.ThrowIfNullOrWhiteSpace(query.Text);
+
+        yield return new AskUpdate(AskStage.Retrieving, null, Array.Empty<Citation>(), null);
 
         await _index.WaitUntilReadyAsync(cancellationToken).ConfigureAwait(false);
 
@@ -53,13 +72,19 @@ public sealed class AskQuestionHandler : IAskQuestion
 
         if (grounded.Count == 0)
         {
-            var refused = new Answer(Policy.RefuseMessage, Array.Empty<Citation>(), PolicyDecision.Deny, refused: true);
-            return ApplyPolicy(query.Text, refused.Text, refused);
+            var refused = ApplyPolicy(
+                query.Text,
+                Policy.RefuseMessage,
+                new Answer(Policy.RefuseMessage, Array.Empty<Citation>(), PolicyDecision.Deny, refused: true));
+            yield return new AskUpdate(AskStage.Done, refused.Text, refused.Citations, refused);
+            yield break;
         }
 
         var citations = grounded
             .Select(h => new Citation(h.Source, h.Content))
             .ToList();
+
+        yield return new AskUpdate(AskStage.Generating, string.Empty, citations, null);
 
         var context = BuildContext(grounded);
         var messages = new ChatMessage[]
@@ -68,12 +93,26 @@ public sealed class AskQuestionHandler : IAskQuestion
             new(ChatRole.User, $"Question:\n{query.Text}\n\nContext:\n{context}")
         };
 
-        var response = await _chat.GetResponseAsync(messages, cancellationToken: cancellationToken).ConfigureAwait(false);
-        var modelText = string.IsNullOrWhiteSpace(response.Text)
-            ? Policy.RefuseMessage
-            : response.Text.Trim();
+        var streamed = new StringBuilder();
+        await foreach (var update in _chat.GetStreamingResponseAsync(messages, cancellationToken: cancellationToken).ConfigureAwait(false))
+        {
+            if (string.IsNullOrEmpty(update.Text))
+            {
+                continue;
+            }
 
-        return ApplyPolicy(query.Text, modelText, new Answer(modelText, citations, PolicyDecision.Allow, refused: false));
+            streamed.Append(update.Text);
+            yield return new AskUpdate(AskStage.Generating, streamed.ToString(), citations, null);
+        }
+
+        var modelText = streamed.Length == 0
+            ? Policy.RefuseMessage
+            : streamed.ToString().Trim();
+        var completed = ApplyPolicy(
+            query.Text,
+            modelText,
+            new Answer(modelText, citations, PolicyDecision.Allow, refused: false));
+        yield return new AskUpdate(AskStage.Done, completed.Text, completed.Citations, completed);
     }
 
     private Answer ApplyPolicy(string question, string modelText, Answer candidate)

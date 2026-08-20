@@ -1,7 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <RootNamespace>Moser.RagAi.BuildingBlocks.API</RootNamespace>
-  </PropertyGroup>
-
-</Project>

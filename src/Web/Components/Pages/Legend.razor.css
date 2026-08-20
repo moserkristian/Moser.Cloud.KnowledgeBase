@@ -12,6 +12,16 @@
 
 .legend-page p { color: var(--muted); margin: 0 0 0.75rem; }
 
+.legend-page ol {
+    margin: 0 0 0.75rem;
+    padding: 0.9rem 1rem 0.9rem 2.1rem;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+}
+
+.legend-page li { margin: 0.35rem 0; }
+
 .legend-page dl {
     display: grid;
     grid-template-columns: 8.5rem 1fr;
