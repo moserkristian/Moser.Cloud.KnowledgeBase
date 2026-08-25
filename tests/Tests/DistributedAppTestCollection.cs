@@ -1,4 +1,4 @@
-namespace Moser.Enterprise.Blueprint.Tests;
+namespace Moser.RagAi.Tests;
 
 [CollectionDefinition("DistributedAppTestCollection")]
 public class DistributedAppTestCollection : ICollectionFixture<DistributedAppTestFixture>

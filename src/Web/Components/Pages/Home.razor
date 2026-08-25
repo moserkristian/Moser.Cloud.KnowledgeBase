@@ -1,7 +1,100 @@
-@page "/Home"
+@page "/"
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
+<section class="home">
+    <p class="eyebrow">Moser.RagAi</p>
+    <h1>Intranet policy RAG</h1>
+    <p>
+        A policy file becomes one searchable row: the original text plus a point in meaning-space.
+        A question lands near similar points; the model reads those texts, not the numbers.
+    </p>
+    <ol class="home-steps">
+        <li class="step step-ingest">
+            <p><strong>Ingest</strong> — walk one real file, then look at the index it creates.</p>
+            <div id="ingest-graph">
+                <div class="ig-toolbar">
+                    <button type="button" class="ig-btn" data-ig="back" aria-label="Previous step">◀</button>
+                    <button type="button" class="ig-btn primary" data-ig="next">Next</button>
+                    <button type="button" class="ig-btn" data-ig="play">Play through</button>
+                    <button type="button" class="ig-btn" data-ig="burst">Show whole seed</button>
+                </div>
+                <ol class="ig-rail" data-ig="rail"></ol>
+                <article class="ig-teach" data-ig="teach">
+                    <div class="ig-teach-kicker" data-ig="teachKick"></div>
+                    <h3 data-ig="teachTitle"></h3>
+                    <p class="ig-teach-why" data-ig="teachWhy"></p>
+                    <div class="ig-teach-pair">
+                        <div><span>Still true</span><p data-ig="teachSame"></p></div>
+                        <div class="ig-new"><span>What changed</span><p data-ig="teachChange"></p></div>
+                    </div>
+                    <pre class="ig-doc" data-ig="teachDoc"></pre>
+                    <div class="ig-meter" data-ig="teachMeter" hidden><i></i><b data-ig="teachMeterLbl"></b></div>
+                    <div class="ig-vecbars" data-ig="teachVec" hidden></div>
+                </article>
+                <div class="ig-card">
+                    <div class="ig-tiers"><span>Disk</span><span>Window</span><span>Coordinates</span><span>Shelf</span></div>
+                    <div class="ig-scroll">
+                        <div class="ig-board" data-ig="graph">
+                            <svg class="ig-edges" data-ig="edges"></svg>
+                            <div class="ig-cols" data-ig="cols"></div>
+                            <div class="ig-flow" data-ig="flow"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ig-index">
+                    <div class="ig-index-head">
+                        <h3>The shelf</h3>
+                        <p>
+                            Search compares <b>where</b> rows sit. The model later reads <b>what they say</b>.
+                            Clusters are a 2D sketch of 768-d space — same idea as a globe drawn on paper.
+                        </p>
+                    </div>
+                    <div class="ig-probes">
+                        <span class="ig-lens-label">Ask the map</span>
+                        <button type="button" class="ig-btn" data-probe="expense">Need a receipt over $25?</button>
+                        <button type="button" class="ig-btn" data-probe="gift">Cash gift from a supplier?</button>
+                        <button type="button" class="ig-btn" data-probe="pto">How many PTO days?</button>
+                    </div>
+                    <div class="ig-index-split">
+                        <div class="ig-table-wrap">
+                            <table class="ig-table">
+                                <thead>
+                                    <tr>
+                                        <th>Id</th>
+                                        <th>Text (model)</th>
+                                        <th>Point (search)</th>
+                                    </tr>
+                                </thead>
+                                <tbody data-ig="table"></tbody>
+                            </table>
+                        </div>
+                        <div class="ig-space-wrap">
+                            <svg class="ig-space" data-ig="space" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+                            <div class="ig-space-cap">Labeled neighborhoods · a question is a new point</div>
+                        </div>
+                    </div>
+                    <div class="ig-ground" data-ig="ground">
+                        <div class="ig-ground-kicker">What the model would read</div>
+                        <p data-ig="groundBody">Finish the walk (or show the seed), then ask the map. Nearby texts — not vectors — go into the prompt.</p>
+                    </div>
+                </div>
+            </div>
+        </li>
+        <li class="step step-retrieve">
+            <p><strong>Retrieve</strong> — embed the question, find nearby points, keep chunks that also share words.</p>
+        </li>
+        <li class="step step-generate">
+            <p><strong>Generate</strong> — the model writes from those texts; C# Policy can still Deny.</p>
+        </li>
+    </ol>
+    <p class="sr-only">
+        Walk one policy file: it is text on disk, measured against a 640-token window and kept as one chunk,
+        given 768-d coordinates without replacing the text, then stored as a row. Search finds nearby rows; the model reads their text.
+    </p>
+    <p>
+        <a href="/assistant/ask">Ask</a>
+        · <a href="/assistant/status">Live index</a>
+        · <a href="/legend">How RAG works here</a>
+    </p>
+</section>

@@ -9,11 +9,11 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-using AppHost = Moser.Enterprise.Blueprint.AppHost;
+using AppHost = Moser.RagAi.AppHost;
 
 [assembly: CollectionBehavior(DisableTestParallelization = false)]
 
-namespace Moser.Enterprise.Blueprint.Tests;
+namespace Moser.RagAi.Tests;
 
 [Collection("DistributedAppTestCollection")]
 public class DistributedAppTestFixture : IAsyncLifetime
