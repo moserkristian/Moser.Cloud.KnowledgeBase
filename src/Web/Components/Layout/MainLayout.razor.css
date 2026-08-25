@@ -1,0 +1,53 @@
+.page {
+    display: flex;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+    min-width: 0;
+}
+
+.sidebar {
+    background: #17181d;
+}
+
+.content {
+    padding: 1.75rem 1.5rem 3rem;
+}
+
+@media (max-width: 640.98px) {
+    .page { flex-direction: column; }
+}
+
+@media (min-width: 641px) {
+    .sidebar {
+        width: 220px;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        flex: 0 0 220px;
+    }
+
+    .content {
+        padding: 2rem 2.25rem 3.5rem;
+    }
+}
+
+#blazor-error-ui {
+    background: #f6e6c8;
+    bottom: 0;
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: 0.75rem;
+    top: 0.5rem;
+}

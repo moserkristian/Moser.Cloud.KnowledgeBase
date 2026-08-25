@@ -1,0 +1,97 @@
+using Aspire.Hosting;
+
+using Microsoft.Extensions.Configuration;
+
+using Projects;
+
+using System;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
+
+using AppHost = Moser.RagAi.AppHost;
+
+[assembly: CollectionBehavior(DisableTestParallelization = false)]
+
+namespace Moser.RagAi.Tests;
+
+[Collection("DistributedAppTestCollection")]
+public class DistributedAppTestFixture : IAsyncLifetime
+{
+    private DistributedApplication? _distributedApp { get; set; }
+    public IResourceCollection? Resources { get; private set; }
+    public IConfiguration? Configuration { get; private set; }
+    public ResourceNotificationService? ResourceNotificationService { get; private set; }
+    public HttpClient? HttpClient { get; private set; }
+    public JsonSerializerOptions? JsonSerializerOptions { get; private set; }
+
+    public async Task InitializeAsync()
+    {
+        var distributedAppTestBuilder = await DistributedApplicationTestingBuilder
+            .CreateAsync<Projects.AppHost>();
+
+        distributedAppTestBuilder.Services.Configure<DistributedApplicationOptions>(options =>
+        {
+            options.DisableDashboard = true;
+        });
+
+        //Resources = distributedApplicationTestingBuilder.Resources
+        //    .Remove(r => r.Name == AppHost.Program.DeviceRegistryApiName)
+        //    .Remove(r => r.Name == AppHost.Program.CommunicationServiceApiName);
+
+        _distributedApp = await distributedAppTestBuilder.BuildAsync();
+
+        ResourceNotificationService = _distributedApp.Services.GetRequiredService<ResourceNotificationService>();
+
+        Configuration = _distributedApp.Services.GetRequiredService<IConfiguration>();
+
+        await _distributedApp.StartAsync();
+
+        await ResourceNotificationService
+            .WaitForResourceAsync(AppHost.Program.WebFrontendName, KnownResourceStates.Running)
+            .WaitAsync(TimeSpan.FromSeconds(30));
+
+        HttpClient = BuildCertBypassHttpClient();
+
+        JsonSerializerOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        //?Client = new ?ApiClient(this);
+    }
+
+    private HttpClient BuildCertBypassHttpClient()
+    {
+        var baseAddress = _distributedApp?.GetEndpoint(AppHost.Program.WebFrontendName, "http");
+
+        var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+
+        return new HttpClient(handler)
+        {
+            BaseAddress = baseAddress,
+            Timeout = TimeSpan.FromMinutes(3)
+        };
+    }
+
+    private HttpClient BuildDistributedAppHttpClient()
+    {
+        var httpClient = _distributedApp?.CreateHttpClient(AppHost.Program.WebFrontendName);
+        httpClient!.Timeout = TimeSpan.FromMinutes(3);
+        return httpClient;
+    }
+
+    public async Task DisposeAsync()
+    {
+        HttpClient?.Dispose();
+
+        if (_distributedApp is not null)
+        {
+            await _distributedApp.StopAsync();
+            await _distributedApp.DisposeAsync();
+        }
+    }
+}
