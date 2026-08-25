@@ -9,7 +9,7 @@ This is a personal case-study / learning repo, not a client product. It shows a 
 | Folder | `Moser.Enterprise.Blueprint` (historical) |
 | Solution | `Moser.RagAi.sln` |
 | Root namespace | `Moser.RagAi.*` |
-| Remote | `github.com/moserkristian/Moser.Enterprise.Blueprint` |
+| Remote | `github.com/moserkristian/Moser.RagAi` (repo renamed from Moser.Enterprise.Blueprint) |
 
 ## What it does
 
