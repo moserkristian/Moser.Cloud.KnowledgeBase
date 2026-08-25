@@ -104,6 +104,15 @@ internal sealed class InMemoryDocumentIndex : IDocumentIndex
             .ToList();
     }
 
+    public Task<IReadOnlyList<IndexedChunk>> ListAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        lock (_gate)
+        {
+            return Task.FromResult<IReadOnlyList<IndexedChunk>>([.. _all]);
+        }
+    }
+
     public Task<int> CountAsync(CancellationToken cancellationToken = default)
         => Task.FromResult(_count);
 

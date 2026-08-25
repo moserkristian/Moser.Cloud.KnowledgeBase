@@ -1,5 +1,9 @@
 @page "/assistant/status"
 @rendermode InteractiveServer
+@using System
+@using System.Collections.Generic
+@using System.Globalization
+@using System.Linq
 @inject IAssistantWorkspace Workspace
 @inject IJSRuntime JS
 
@@ -9,7 +13,10 @@
     <header class="status-head">
         <p class="eyebrow">Knowledge</p>
         <h1>Index status</h1>
-        <p>Provider, model, and chunk count in this Web process. Ollama pulls models; this page does not.</p>
+        <p>
+            Each row is one chunk: original text plus a 768-d embedding. Search compares vectors;
+            the model later reads the text. This is the live <code>InMemoryDocumentIndex</code> in this Web process.
+        </p>
         <p>
             <a href="/assistant/ask">Ask</a>
             · <a href="/legend">How RAG works here</a>
@@ -57,15 +64,80 @@
             <button type="button" class="btn btn-secondary" disabled="@busy" @onclick="Refresh">Refresh</button>
             <button type="button" class="btn btn-secondary" disabled="@busy" @onclick="Reset">Reload seed</button>
         </div>
+
+        <h2 class="status-index-title">Vector store · <code>policy-chunks</code> + <code>_all</code></h2>
+        <p class="status-index-lead">
+            Microsoft Foundry: the index holds grounding passages and citation metadata.
+            OpenAI: an embedding is a list of floats; nearest neighbors of the question vector return those passages.
+        </p>
+        <label class="status-filter">
+            Filter
+            <input type="search" @bind="filter" @bind:event="oninput" placeholder="source or id" />
+        </label>
+
+        @if (rows.Count == 0)
+        {
+            <p>Index is empty.</p>
+        }
+        else
+        {
+            <div class="status-table-wrap">
+                <table class="status-table">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Source</th>
+                            <th>Text (what the model sees)</th>
+                            <th>Vector (what search uses)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in VisibleRows)
+                        {
+                            var open = selected == row.Id;
+                            <tr class="@(open ? "on" : null)" @onclick="() => Toggle(row.Id)">
+                                <td><code>@row.Id</code></td>
+                                <td><code>@row.Source</code></td>
+                                <td>@(open ? row.Content : Clip(row.Content, 140))</td>
+                                <td class="vec"><code>@FormatPreview(row)</code></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <p class="status-count">@VisibleRows.Count() of @rows.Count rows · click a row to expand text</p>
+        }
     }
 </section>
 
 @code {
     private AssistantStatus? status;
+    private IReadOnlyList<IndexRow> rows = [];
     private string? error;
     private bool busy;
+    private string filter = "";
+    private string? selected;
+
+    private IEnumerable<IndexRow> VisibleRows =>
+        string.IsNullOrWhiteSpace(filter)
+            ? rows
+            : rows.Where(r =>
+                r.Id.Contains(filter, StringComparison.OrdinalIgnoreCase)
+                || r.Source.Contains(filter, StringComparison.OrdinalIgnoreCase)
+                || r.Content.Contains(filter, StringComparison.OrdinalIgnoreCase));
 
     protected override Task OnInitializedAsync() => Refresh();
+
+    private void Toggle(string id) => selected = selected == id ? null : id;
+
+    private static string Clip(string text, int n)
+        => text.Length <= n ? text : text[..n].TrimEnd() + "…";
+
+    private static string FormatPreview(IndexRow row)
+    {
+        var parts = row.VectorPreview.Select(v => v.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
+        return $"[{string.Join(", ", parts)}, … {row.Dimensions}-d]";
+    }
 
     private async Task Refresh()
     {
@@ -74,6 +146,7 @@
         try
         {
             status = await Workspace.GetStatusAsync();
+            rows = await Workspace.ListIndexAsync();
         }
         catch (Exception ex)
         {
@@ -98,6 +171,7 @@
         {
             await Workspace.ResetGeneratedDataAsync();
             status = await Workspace.GetStatusAsync();
+            rows = await Workspace.ListIndexAsync();
         }
         catch (Exception ex)
         {

@@ -13,6 +13,7 @@ public interface IDocumentIndex
 {
     Task UpsertAsync(IReadOnlyList<IndexedChunk> chunks, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<IndexedChunk>> SearchAsync(ReadOnlyMemory<float> queryEmbedding, int top, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<IndexedChunk>> ListAsync(CancellationToken cancellationToken = default);
     Task<int> CountAsync(CancellationToken cancellationToken = default);
     Task ClearAsync(CancellationToken cancellationToken = default);
     Task WaitUntilReadyAsync(CancellationToken cancellationToken = default);

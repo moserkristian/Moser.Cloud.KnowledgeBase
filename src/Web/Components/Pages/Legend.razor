@@ -6,28 +6,37 @@
     <p class="eyebrow">Knowledge</p>
     <h1>How this RAG works</h1>
     <p>
-        Retrieval-augmented generation: the model answers from found policy slices, not from training memory.
-        A C# Policy layer can still Deny after the last generated token.
+        Retrieval-augmented generation: retrieve your own passages, put them in the prompt, then generate.
+        The model answers from those slices, not from training memory. A C# Policy layer can still Deny after the last token.
     </p>
 
-    <h2>Pipeline</h2>
+    <h2>Official flow</h2>
     <ol>
-        <li><strong>Ingest</strong> — at startup, read <code>data/seed/policy/*.md</code>, split into chunks, embed, store in the index.</li>
-        <li><strong>Retrieve</strong> — embed the question, hybrid-search nearest chunks (vector + word overlap).</li>
-        <li><strong>Generate</strong> — stream an answer from those chunks only. Citations show as soon as retrieve finishes.</li>
-        <li><strong>Policy</strong> — deterministic C# rules. Can Deny or send to a human even if the model said yes.</li>
+        <li><strong>Prepare (ingest)</strong> — chunk text, embed each chunk, store text + vector + source. <a href="https://learn.microsoft.com/dotnet/ai/conceptual/rag">.NET RAG</a></li>
+        <li><strong>Retrieve</strong> — embed the question; nearest vectors in the index are the candidate passages. <a href="https://learn.microsoft.com/azure/foundry/concepts/retrieval-augmented-generation">Foundry RAG</a></li>
+        <li><strong>Augment</strong> — those <em>texts</em> (not the vectors) go into the prompt as grounding data.</li>
+        <li><strong>Generate</strong> — the chat model writes from that prompt; citations come from stored source metadata.</li>
     </ol>
+
+    <h2>What this app actually stores</h2>
+    <p>
+        A row in <code>InMemoryDocumentIndex</code> is <code>PolicyChunkRecord</code>: id, source filename, chunk text, embedding.
+        Collection <code>policy-chunks</code> is the vector store (cosine). List <code>_all</code> is a copy used as hybrid fallback.
+        Seed files are short, so a 640-token window with overlap 96 usually keeps the whole file as one chunk.
+    </p>
 
     <h2>Terms</h2>
     <dl>
         <dt>Chunk</dt>
-        <dd>A short slice of a document, not the whole file.</dd>
+        <dd>A slice of a document, sized for the embedder and the prompt. Here: max 640 tokens, overlap 96 if a split happens.</dd>
         <dt>Embedding</dt>
-        <dd>A list of numbers that represents meaning. Similar text sits close together.</dd>
+        <dd>A list of floats that represents meaning. Similar text sits close. This app: <code>nomic-embed-text</code>, 768 dimensions. Search uses cosine similarity. <a href="https://developers.openai.com/api/docs/guides/embeddings">OpenAI embeddings</a></dd>
         <dt>Index</dt>
-        <dd>The store of chunks + embeddings. This prototype keeps it in memory in the Web process.</dd>
+        <dd>The store of chunks + embeddings, optimized for retrieval. Prototype: in-process RAM, not Azure AI Search.</dd>
+        <dt>Hybrid</dt>
+        <dd>Vector neighbors, then a word-overlap filter so a high cosine with no shared terms is dropped.</dd>
         <dt>Citation</dt>
-        <dd>Which source file a retrieved chunk came from.</dd>
+        <dd>Which source file a retrieved chunk came from — metadata stored next to the text.</dd>
         <dt>Stub</dt>
         <dd>A stand-in when Ollama is offline. Not an LLM — copied sentences so the app still runs.</dd>
         <dt>Allow</dt>

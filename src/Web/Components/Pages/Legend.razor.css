@@ -1,4 +1,4 @@
-.legend-page { max-width: 42rem; }
+.legend-page { max-width: 46rem; }
 
 .legend-page h1 {
     font-size: 1.6rem;
@@ -35,6 +35,8 @@
 
 .legend-page dt { font-weight: 650; }
 .legend-page dd { margin: 0; color: var(--muted); }
+
+.legend-page a { word-break: break-word; }
 
 @media (max-width: 640px) {
     .legend-page dl { grid-template-columns: 1fr; }

@@ -5,6 +5,7 @@ using Moser.RagAi.Assistant.Application;
 using Moser.RagAi.Ingestion.Application;
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -50,6 +51,22 @@ internal sealed class AssistantWorkspace : IAssistantWorkspace
             reachable,
             await _index.CountAsync(cancellationToken).ConfigureAwait(false),
             _lastIngestUtc);
+    }
+
+    public async Task<IReadOnlyList<IndexRow>> ListIndexAsync(CancellationToken cancellationToken = default)
+    {
+        var chunks = await _index.ListAsync(cancellationToken).ConfigureAwait(false);
+        var rows = new List<IndexRow>(chunks.Count);
+        foreach (var chunk in chunks)
+        {
+            var span = chunk.Embedding.Span;
+            var take = Math.Min(8, span.Length);
+            var preview = new float[take];
+            span[..take].CopyTo(preview);
+            rows.Add(new IndexRow(chunk.Id, chunk.Source, chunk.Content, span.Length, preview));
+        }
+
+        return rows;
     }
 
     public async Task ResetGeneratedDataAsync(CancellationToken cancellationToken = default)
