@@ -155,7 +155,7 @@
         </form>
     </section>
 
-    <aside class="ask-side" aria-label="Sources">
+    <aside class="ask-side @(preview is not null ? "is-covered" : null)" aria-label="Sources">
         <header class="ask-side-head">
             <h2>Sources</h2>
             <p>@(citations.Count == 0 ? "None yet" : $"{citations.Count}")</p>
@@ -197,12 +197,10 @@
             && TryFindChunk(NormalizeNewlines(source.ExtractedText), NormalizeNewlines(citation.Chunk), out _, out _);
         var showCitedBanner = kind is "pdf" || !highlightFound;
 
-        <div class="ask-drawer on" @onclick="ClosePreview">
+        <div class="ask-drawer">
             <div class="ask-drawer-panel"
                  @ref="drawerPanel"
-                 @onclick:stopPropagation="true"
                  role="dialog"
-                 aria-modal="true"
                  aria-labelledby="ask-drawer-title"
                  tabindex="-1">
                 <header class="ask-drawer-toolbar">
