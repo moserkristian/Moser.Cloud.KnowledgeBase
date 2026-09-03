@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ask · prečo po Open file zbledne strana</title>
+  <style>
+    :root {
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --fs-2xs: 0.75rem; --fs-xs: 0.8125rem; --fs-sm: 0.875rem; --fs-md: 1rem; --fs-lg: 1.125rem; --fs-xl: 1.25rem; --fs-2xl: 1.625rem;
+      --ink: #1c1b18; --muted: #6f6c65; --line: #ddd8cc; --paper: #fffcf7; --bg: #f3f1ec;
+      --success: #1f8a5b; --warn: #b7791f; --danger: #c43c3c;
+      --radius-md: 12px; --radius-lg: 16px; --tracking-caps: 0.08em;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--font-sans); }
+    button, select { font: inherit; color: inherit; }
+    code { font-family: var(--font-mono); font-size: 0.9em; }
+
+    .page { max-width: 1180px; margin: 0 auto; padding: 2rem 1.5rem 4.5rem; }
+    .kicker { margin: 0; color: var(--muted); font-size: var(--fs-2xs); font-weight: 600; letter-spacing: var(--tracking-caps); text-transform: uppercase; }
+    h1 { margin: 0.2rem 0 0.5rem; font-size: var(--fs-2xl); font-weight: 600; letter-spacing: -0.01em; }
+    .lead { margin: 0 0 1.5rem; max-width: 46rem; color: var(--muted); }
+    h2 { margin: 0 0 0.45rem; font-size: var(--fs-xl); font-weight: 600; }
+    h3 { margin: 0; font-size: var(--fs-lg); font-weight: 600; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 1.1rem 1.2rem;
+    }
+    .panel p, .panel li { margin: 0.35rem 0 0; }
+    .panel ul { margin: 0.4rem 0 0; padding-left: 1.15rem; }
+    .muted { color: var(--muted); font-size: var(--fs-sm); }
+    .formula {
+      margin: 0.7rem 0 0;
+      padding: 0.65rem 0.75rem;
+      border-radius: 8px;
+      background: var(--bg);
+      font-size: var(--fs-xs);
+      overflow: auto;
+    }
+
+    .thumbs { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.25rem 0 0; }
+    @media (max-width: 860px) { .thumbs { grid-template-columns: 1fr; } }
+    .thumb { padding: 0.85rem; }
+    .thumb .cap { display: flex; justify-content: space-between; gap: 0.5rem; align-items: baseline; margin-bottom: 0.55rem; }
+    .thumb .cap strong { font-size: var(--fs-sm); }
+    .tag {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: var(--tracking-caps);
+      text-transform: uppercase; padding: 0.12rem 0.4rem; border-radius: 999px;
+    }
+    .tag.bad { color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, var(--paper)); }
+    .tag.ok { color: var(--success); background: color-mix(in srgb, var(--success) 12%, var(--paper)); }
+    .tag.mid { color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, var(--paper)); }
+
+    /* —— Mini Ask frames ——————————————————————————————————————————————— */
+    .frame {
+      --ink: #1c1b18; --muted: #6f6c65; --line: #ddd8cc; --paper: #fffcf7; --bg: #f3f1ec;
+      position: relative; height: 210px; border: 1px solid var(--line); border-radius: 10px;
+      overflow: hidden; display: grid; grid-template-columns: 22% 1fr 28%; background: var(--bg); color: var(--ink);
+      font-size: 9px; line-height: 1.35;
+    }
+    .frame.dark {
+      --ink: #eceae4; --muted: #9d9b94; --line: #2f3036; --paper: #1c1d22; --bg: #1a1b22;
+    }
+    .col { min-width: 0; overflow: hidden; padding: 0.45rem 0.5rem; }
+    .col + .col { border-left: 1px solid var(--line); }
+    .col b { display: block; font-size: 10px; }
+    .ghost-line { height: 5px; margin: 0.28rem 0 0; border-radius: 99px; background: color-mix(in srgb, var(--ink) 14%, transparent); }
+    .ghost-line.w2 { width: 72%; }
+    .ghost-line.w3 { width: 54%; }
+    .thread { display: flex; gap: 0.3rem; margin-top: 0.4rem; }
+    .av { width: 12px; height: 12px; border-radius: 50%; background: var(--ink); flex: 0 0 auto; }
+    .bubble { margin-top: 0.4rem; padding: 0.35rem 0.4rem; border-radius: 7px; background: color-mix(in srgb, var(--ink) 7%, var(--paper)); }
+    .bubble.bot { background: var(--bg); box-shadow: inset 2px 0 0 var(--success); }
+    .src { margin-top: 0.4rem; padding: 0.35rem; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); }
+    .scrim {
+      position: absolute; inset: 0; display: flex; justify-content: flex-end;
+    }
+    .scrim.ink { background: color-mix(in srgb, var(--ink) 28%, transparent); }
+    .scrim.black { background: rgb(0 0 0 / 0.4); }
+    .scrim.none { background: transparent; pointer-events: none; }
+    .scrim.col-only { left: auto; width: 28%; background: transparent; }
+    .sheet {
+      width: 28%; height: 100%; background: var(--paper); border-left: 1px solid var(--line);
+      padding: 0.45rem 0.5rem; box-shadow: -10px 0 24px rgb(0 0 0 / 0.16);
+    }
+    .hit { background: #ffe08a; color: #222; box-shadow: 0 0 0 1px #ffe08a; }
+
+    /* —— Interactive stage ————————————————————————————————————————————— */
+    .stage { margin-top: 1.5rem; }
+    .stage-head { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: space-between; align-items: end; margin-bottom: 0.75rem; }
+    .picks { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.55rem; margin-bottom: 0.85rem; }
+    .pick {
+      display: grid; gap: 0.15rem; text-align: left; padding: 0.7rem 0.8rem;
+      border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--paper); cursor: pointer;
+    }
+    .pick:hover { background: color-mix(in srgb, var(--ink) 4%, var(--paper)); }
+    .pick.on { box-shadow: inset 3px 0 0 var(--ink); background: var(--bg); }
+    .pick .tag { justify-self: start; margin-top: 0.25rem; }
+    .pick strong { font-size: var(--fs-sm); }
+    .pick span { color: var(--muted); font-size: var(--fs-xs); }
+
+    .tools { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .ghost {
+      border: 1px solid var(--line); background: var(--paper); border-radius: 999px;
+      padding: 0.3rem 0.7rem; cursor: pointer; font-size: var(--fs-xs);
+    }
+    .ghost.on { background: var(--ink); color: var(--paper); }
+
+    .desk {
+      --ink: #1c1b18; --muted: #6f6c65; --line: #ddd8cc; --paper: #fffcf7; --bg: #f3f1ec;
+      position: relative; min-height: 540px; border: 1px solid var(--line); border-radius: var(--radius-lg);
+      overflow: hidden; display: grid; grid-template-columns: 22% minmax(0, 1fr) 26%;
+      background: var(--bg); color: var(--ink);
+    }
+    .desk.dark {
+      --ink: #eceae4; --muted: #9d9b94; --line: #2f3036; --paper: #1c1d22; --bg: #1a1b22;
+    }
+    .desk.push-open { grid-template-columns: 22% minmax(0, 1fr) 34%; }
+    .desk-col { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--bg); }
+    .desk-col + .desk-col { border-left: 1px solid var(--line); }
+    .head { padding: 0.85rem 0.95rem 0.7rem; border-bottom: 1px solid var(--line); }
+    .head p { margin: 0.15rem 0 0; color: var(--muted); font-size: var(--fs-xs); }
+    .list { flex: 1; overflow: auto; }
+    .item { display: flex; gap: 0.65rem; padding: 0.7rem 0.95rem; border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+    .item.on { background: color-mix(in srgb, var(--ink) 6%, var(--bg)); }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--ink); color: var(--paper); display: grid; place-items: center; font-size: 11px; font-weight: 600; flex: 0 0 auto; }
+    .item strong { display: block; font-size: var(--fs-sm); }
+    .item small, .item .prev { color: var(--muted); font-size: var(--fs-xs); }
+    .log { flex: 1; overflow: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.7rem; }
+    .ask-b { max-width: 36rem; padding: 0.7rem 0.85rem; border-radius: 14px; background: var(--bg); }
+    .ask-b.you { align-self: flex-end; background: color-mix(in srgb, var(--ink) 8%, var(--paper)); }
+    .ask-b.bot { align-self: flex-start; box-shadow: inset 3px 0 0 var(--success); }
+    .ask-b small { display: block; color: var(--muted); font-size: var(--fs-2xs); font-weight: 600; letter-spacing: var(--tracking-caps); text-transform: uppercase; margin-bottom: 0.2rem; }
+    .ask-b p { margin: 0; font-size: var(--fs-sm); }
+    .composer { display: flex; gap: 0.5rem; padding: 0.75rem 0.95rem; border-top: 1px solid var(--line); }
+    .composer input { flex: 1; border: 1px solid var(--line); border-radius: 999px; padding: 0.55rem 0.9rem; background: var(--paper); color: var(--ink); }
+    .src-list { padding: 0.75rem; display: flex; flex-direction: column; gap: 0.65rem; overflow: auto; }
+    .card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: 0.7rem 0.8rem; background: var(--paper); }
+    .eyebrow { margin: 0; color: var(--muted); font-size: var(--fs-2xs); font-weight: 600; letter-spacing: var(--tracking-caps); text-transform: uppercase; }
+    .card pre { margin: 0.35rem 0; white-space: pre-wrap; color: var(--muted); font-size: var(--fs-2xs); max-height: 4.5rem; overflow: hidden; }
+    .link { background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; font-size: var(--fs-xs); }
+
+    .drawer {
+      position: absolute; inset: 0; z-index: 8; display: none; justify-content: flex-end;
+    }
+    .desk.open .drawer { display: flex; }
+    .desk[data-pattern="ink"] .drawer { background: color-mix(in srgb, var(--ink) 28%, transparent); }
+    .desk[data-pattern="black"] .drawer { background: rgb(0 0 0 / 0.4); }
+    .desk[data-pattern="soft"] .drawer { background: rgb(0 0 0 / 0.12); }
+    .desk[data-pattern="frost"] .drawer { background: rgb(0 0 0 / 0.18); backdrop-filter: blur(7px); }
+    .desk[data-pattern="sheet"] .drawer { background: transparent; }
+    .desk[data-pattern="column"] .drawer { left: auto; width: 26%; background: transparent; }
+    .desk[data-pattern="push"] .drawer { display: none !important; }
+    .drawer-panel {
+      width: min(360px, 92%); height: 100%; display: flex; flex-direction: column; gap: 0.65rem;
+      padding: 0.9rem; background: var(--paper); border-left: 1px solid var(--line); overflow: auto;
+    }
+    .desk[data-pattern="sheet"] .drawer-panel { box-shadow: -18px 0 40px rgb(0 0 0 / 0.18); }
+    .desk[data-pattern="column"] .drawer-panel { width: 100%; box-shadow: none; }
+    .desk.push-open .push-panel { display: flex; }
+    .push-panel { display: none; flex-direction: column; gap: 0.65rem; padding: 0.9rem; background: var(--paper); min-width: 0; }
+    .doc { font-family: Georgia, "Times New Roman", serif; background: #fff; color: #222; border: 1px solid #d8d2c6; padding: 0.9rem; border-radius: 8px; }
+    .desk.dark .doc { background: color-mix(in srgb, var(--ink) 6%, var(--paper)); color: var(--ink); border-color: var(--line); }
+    .doc h4 { margin: 0 0 0.5rem; font-size: 0.95rem; }
+    .doc p { margin: 0 0 0.55rem; font-size: 0.86rem; line-height: 1.5; }
+    .toolbar { display: flex; justify-content: space-between; gap: 0.5rem; align-items: center; }
+    .verdict { margin-top: 1rem; padding: 1rem 1.1rem; border: 1px dashed var(--line); border-radius: var(--radius-lg); background: var(--paper); }
+    .verdict strong { display: block; margin-bottom: 0.2rem; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <p class="kicker">Demo · Ask overlay</p>
+    <h1>Prečo po Open file zbledne ľavá strana</h1>
+    <p class="lead">
+      Nie je to fade animácia layoutu. Drawer je <em>modálny overlay cez celý Ask desk</em>
+      (inbox + chat + sources). Backdrop je namiešaný z tokenu <code>--ink</code>,
+      ktorý v dark mode nie je čierny — je to svetlá farba textu. Preto strana
+      <strong>zbledne</strong>, namiesto toho aby sa slušne stmavila.
+    </p>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>Čo sa deje dnes</h2>
+        <p class="muted">
+          Pattern A z <code>demos/source-preview.html</code> sa prepísal 1:1.
+          Overlay je <code>position: absolute; inset: 0</code> nad <code>.ask-desk</code>
+          a má <code>aria-modal="true"</code> + focus trap.
+        </p>
+        <pre class="formula">background: color-mix(in srgb, var(--ink) 28%, transparent);</pre>
+        <ul>
+          <li>Light: <code>--ink</code> je <code>#1c1b18</code> → 28 % čiernej = šedý závoj, chat ostane čitateľný.</li>
+          <li>Dark: <code>--ink</code> je <code>#eceae4</code> → 28 % bielej = <strong>vybielenie</strong> inboxu a odpovede.</li>
+        </ul>
+      </section>
+      <section class="panel">
+        <h2>Je to best practice?</h2>
+        <p>
+          Scrim áno — ale <em>len pre blocking modal</em> (uložiť / zahodiť, platba, alert).
+          A vždy z <strong>čiernej</strong>, nie z textovej farby.
+        </p>
+        <ul>
+          <li>Material, Apple HIG, Fluent: overlay <code>black 32–50 %</code> v oboch témah.</li>
+          <li>NotebookLM, Claude, VS Code, Gmail: náhľad súboru je <em>doplnkový panel</em>, nie modal. Chat nesmie zblednúť — porovnávaš citát s odpoveďou.</li>
+          <li>WCAG: ak necháš <code>aria-modal</code>, pozadie má vyzerať inertné. Ak preview nie je modal, scrim je nielen zbytočný, ale aj zlý.</li>
+        </ul>
+        <p class="muted">Esteticky: 28 % ink v dark mode je chyba tokenu. Funkčne: zhasnúť konverzáciu pri čítaní zdroja je pre RAG nesprávny pattern.</p>
+      </section>
+    </div>
+
+    <div class="thumbs">
+      <figure class="panel thumb">
+        <div class="cap">
+          <strong>Dnes · dark · ink 28 %</strong>
+          <span class="tag bad">zbledne</span>
+        </div>
+        <div class="frame dark" aria-hidden="true">
+          <div class="col"><b>Ask</b><div class="thread"><i class="av"></i><div><div class="ghost-line"></div><div class="ghost-line w2"></div></div></div><div class="thread"><i class="av"></i><div><div class="ghost-line"></div><div class="ghost-line w3"></div></div></div></div>
+          <div class="col"><b>Answer</b><div class="bubble you"><div class="ghost-line"></div></div><div class="bubble bot"><div class="ghost-line"></div><div class="ghost-line w2"></div></div></div>
+          <div class="col"><b>Sources</b><div class="src"><div class="ghost-line w2"></div></div></div>
+          <div class="scrim ink"><div class="sheet"><b>conflict-check.docx</b><p class="hit">before starting substantial work</p><div class="ghost-line"></div><div class="ghost-line w2"></div></div></div>
+        </div>
+        <p class="muted">Inbox a odpoveď sú pod bielym závojom. V dark mode to vyzerá ako vypálený kontrast.</p>
+      </figure>
+      <figure class="panel thumb">
+        <div class="cap">
+          <strong>Dnes · light · ink 28 %</strong>
+          <span class="tag mid">stmavne</span>
+        </div>
+        <div class="frame" aria-hidden="true">
+          <div class="col"><b>Ask</b><div class="thread"><i class="av"></i><div><div class="ghost-line"></div><div class="ghost-line w2"></div></div></div></div>
+          <div class="col"><b>Answer</b><div class="bubble you"><div class="ghost-line"></div></div><div class="bubble bot"><div class="ghost-line"></div></div></div>
+          <div class="col"><b>Sources</b><div class="src"><div class="ghost-line w2"></div></div></div>
+          <div class="scrim ink"><div class="sheet"><b>conflict-check.docx</b><p class="hit">before starting substantial work</p><div class="ghost-line"></div></div></div>
+        </div>
+        <p class="muted">Technicky „správny“ modal, ale stále zhasína vec, ktorú potrebuješ čítať vedľa citátu.</p>
+      </figure>
+      <figure class="panel thumb">
+        <div class="cap">
+          <strong>Oprava modalu · black 40 %</strong>
+          <span class="tag mid">ak modal</span>
+        </div>
+        <div class="frame dark" aria-hidden="true">
+          <div class="col"><b>Ask</b><div class="thread"><i class="av"></i><div><div class="ghost-line"></div></div></div></div>
+          <div class="col"><b>Answer</b><div class="bubble bot"><div class="ghost-line"></div></div></div>
+          <div class="col"><b>Sources</b><div class="src"><div class="ghost-line w2"></div></div></div>
+          <div class="scrim black"><div class="sheet"><b>conflict-check.docx</b><p class="hit">before starting substantial work</p></div></div>
+        </div>
+        <p class="muted">Token opravený: vždy čierna. Dark mode už nebledne. Chat je ale stále mimo hry.</p>
+      </figure>
+      <figure class="panel thumb">
+        <div class="cap">
+          <strong>Odporúčanie · panel v Sources</strong>
+          <span class="tag ok">bez závoja</span>
+        </div>
+        <div class="frame dark" aria-hidden="true">
+          <div class="col"><b>Ask</b><div class="thread"><i class="av"></i><div><div class="ghost-line"></div><div class="ghost-line w2"></div></div></div></div>
+          <div class="col"><b>Answer</b><div class="bubble you"><div class="ghost-line"></div></div><div class="bubble bot"><div class="ghost-line"></div><div class="ghost-line w2"></div></div></div>
+          <div class="col" style="background: var(--paper);"><b>conflict-check.docx</b><p class="hit">before starting substantial work</p><div class="ghost-line"></div><div class="ghost-line w2"></div></div>
+        </div>
+        <p class="muted">Inbox a odpoveď ostanú plné. Preview zaberie stĺpec, ktorý už slúži zdrojom.</p>
+      </figure>
+    </div>
+
+    <section class="stage">
+      <div class="stage-head">
+        <div>
+          <p class="kicker">Živé porovnanie</p>
+          <h2>Otvor súbor a prepnite overlay</h2>
+        </div>
+        <div class="tools">
+          <button type="button" class="ghost on" id="theme-light">Light</button>
+          <button type="button" class="ghost" id="theme-dark">Dark</button>
+        </div>
+      </div>
+
+      <div class="picks" role="listbox" aria-label="Overlay pattern">
+        <button type="button" class="pick on" data-pattern="ink">
+          <strong>A · Dnešný stav</strong>
+          <span>ink 28 % cez celý desk. V dark mode zbledne.</span>
+          <em class="tag bad">nie</em>
+        </button>
+        <button type="button" class="pick" data-pattern="black">
+          <strong>B · Správny modal</strong>
+          <span>vždy black 40 %. Best practice pre dialog, nie pre RAG preview.</span>
+          <em class="tag mid">iba ak modal</em>
+        </button>
+        <button type="button" class="pick" data-pattern="soft">
+          <strong>C · Jemný scrim</strong>
+          <span>black 12 %. Menej bolí, stále zhasína chat.</span>
+          <em class="tag mid">kompromis</em>
+        </button>
+        <button type="button" class="pick" data-pattern="frost">
+          <strong>D · Frosted</strong>
+          <span>blur + 18 % black. Moderne, ale citát vs. odpoveď sa nedajú porovnať.</span>
+          <em class="tag bad">nie</em>
+        </button>
+        <button type="button" class="pick" data-pattern="sheet">
+          <strong>E · Sheet, bez závoja</strong>
+          <span>Drawer cez sources, chat plný kontrast. Klik mimo zatvorí.</span>
+          <em class="tag ok">lepšie</em>
+        </button>
+        <button type="button" class="pick" data-pattern="column">
+          <strong>F · Len Sources stĺpec</strong>
+          <span>Inbox aj odpoveď nedotknuté. Odporúčanie pre /ask.</span>
+          <em class="tag ok">odporúčam</em>
+        </button>
+        <button type="button" class="pick" data-pattern="push">
+          <strong>G · Push / split</strong>
+          <span>Sources sa stanú náhľadom. Nula overlay, ako NotebookLM.</span>
+          <em class="tag ok">tiež dobré</em>
+        </button>
+      </div>
+
+      <div class="desk open" id="desk" data-pattern="ink">
+        <aside class="desk-col">
+          <header class="head">
+            <h3>Ask</h3>
+            <p>Legal / law firm</p>
+          </header>
+          <div class="list">
+            <div class="item on">
+              <span class="avatar">Q</span>
+              <div>
+                <strong>What must be done before starting substantial work?</strong>
+                <span class="prev">Run a conflict check against current and former clients…</span>
+              </div>
+            </div>
+            <div class="item">
+              <span class="avatar">@</span>
+              <div>
+                <strong>client confidentiality</strong>
+                <small>12-Mar-26 · j.hoferova@ak-hb.sk</small>
+              </div>
+            </div>
+            <div class="item">
+              <span class="avatar">Q</span>
+              <div>
+                <strong>How do we handle a conflict with a former client?</strong>
+                <span class="prev">Decline or obtain informed consent in writing…</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <section class="desk-col">
+          <header class="head">
+            <h3>What must be done before starting substantial work?</h3>
+            <p>Legal / law firm</p>
+          </header>
+          <div class="log">
+            <article class="ask-b you"><small>You</small><p>What must be done before starting substantial work for a new client?</p></article>
+            <article class="ask-b bot"><small>Answer</small><p>Run a conflict check against current and former clients before starting substantial work. Record the result. If a conflict exists, decline or obtain informed written consent.</p></article>
+          </div>
+          <form class="composer" onsubmit="return false">
+            <input value="Message…" readonly />
+            <button type="button" class="ghost">Send</button>
+          </form>
+        </section>
+
+        <aside class="desk-col" id="sources-col">
+          <header class="head">
+            <h3>Sources</h3>
+            <p>2</p>
+          </header>
+          <div class="src-list" id="source-cards">
+            <div class="card">
+              <p class="eyebrow">Word · conflict-check.docx</p>
+              <pre>Run a conflict check against current and former clients before starting substantial work.</pre>
+              <button type="button" class="link" data-open>Open file</button>
+            </div>
+            <div class="card">
+              <p class="eyebrow">Mail · hold-notice.eml</p>
+              <pre>Preserve all potentially relevant documents. Do not delete, alter, or auto-archive.</pre>
+              <button type="button" class="link" data-open>Open file</button>
+            </div>
+          </div>
+          <div class="push-panel" id="push-panel">
+            <div class="toolbar">
+              <div>
+                <p class="eyebrow">Word</p>
+                <strong>conflict-check.docx</strong>
+              </div>
+              <button type="button" class="ghost" data-close>Close</button>
+            </div>
+            <div class="doc">
+              <h4>Conflict check procedure</h4>
+              <p>Office policy for new matters. Search the client register and the former-client index.</p>
+              <p><mark class="hit">Run a conflict check against current and former clients before starting substantial work.</mark> Record the result in the matter file.</p>
+              <p>If a conflict exists, decline the engagement or obtain informed written consent.</p>
+            </div>
+          </div>
+        </aside>
+
+        <div class="drawer" id="drawer">
+          <div class="drawer-panel" role="dialog" aria-labelledby="preview-title">
+            <div class="toolbar">
+              <div>
+                <p class="eyebrow">Word</p>
+                <strong id="preview-title">conflict-check.docx</strong>
+              </div>
+              <button type="button" class="ghost" data-close>Close</button>
+            </div>
+            <div class="doc">
+              <h4>Conflict check procedure</h4>
+              <p>Office policy for new matters. Search the client register and the former-client index.</p>
+              <p><mark class="hit">Run a conflict check against current and former clients before starting substantial work.</mark> Record the result in the matter file.</p>
+              <p>If a conflict exists, decline the engagement or obtain informed written consent.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="verdict">
+        <strong>Verdikt</strong>
+        <p class="muted" id="verdict">
+          A nie je best practice. Overlay z <code>--ink</code> v dark mode vybieli desk.
+          Pre source preview na Ask je správne F alebo G: žiadny závoj, chat ostane čitateľný,
+          Esc a Close zatvoria náhľad. Modal so scrimom nechaj na skutočné dialógy.
+        </p>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const desk = document.getElementById("desk");
+    const verdict = document.getElementById("verdict");
+    const copy = {
+      ink: "Dnešný stav. V dark mode zbledne celý desk, lebo 28 % --ink je 28 % bielej. Light theme stmavne. Ani jedno nie je ideálne pre porovnanie citátu s odpoveďou.",
+      black: "Token opravený: overlay je vždy čierny. Takto vyzerá slušný modal. Pre Ask preview je stále ťažký — zhasína konverzáciu, ktorú potrebuješ vedľa dokumentu.",
+      soft: "Menej agresívny modal. Kontrast klesne, ale chat ostáva čitateľný. Kompromis, ak chceš nechať aria-modal a klik mimo = zatvoriť.",
+      frost: "Vyzerá draho, čítať sa nedá. Blur zničí práve ten dôvod preview: overiť, že model čítal ten istý odsek, ktorý vidíš v odpovedi.",
+      sheet: "Žiadny závoj. Drawer má tieň a klik mimo zatvorí. Inbox aj chat ostanú plné. Dobré, ak chceš väčší panel ako Sources stĺpec.",
+      column: "Odporúčanie. Preview žije v Sources raili. Ľavá strana sa ani nezatieni, ani nezbledne. Focus môže ísť do panela, chat ostáva viditeľný.",
+      push: "Sources karty sa vymenia za dokument. Nula overlay, nula zmeny kontrastu. Najbližšie k NotebookLM. Na úzkom okne treba fullscreen sheet."
+    };
+
+    function setPattern(name) {
+      desk.dataset.pattern = name;
+      desk.classList.toggle("push-open", name === "push" && desk.classList.contains("open"));
+      document.querySelectorAll(".pick").forEach((el) => el.classList.toggle("on", el.dataset.pattern === name));
+      verdict.innerHTML = copy[name];
+    }
+
+    function openPreview() {
+      desk.classList.add("open");
+      if (desk.dataset.pattern === "push") desk.classList.add("push-open");
+    }
+
+    function closePreview() {
+      desk.classList.remove("open", "push-open");
+    }
+
+    document.querySelectorAll(".pick").forEach((el) => {
+      el.addEventListener("click", () => {
+        setPattern(el.dataset.pattern);
+        openPreview();
+      });
+    });
+    document.querySelectorAll("[data-open]").forEach((el) => el.addEventListener("click", openPreview));
+    document.querySelectorAll("[data-close]").forEach((el) => el.addEventListener("click", closePreview));
+    document.getElementById("drawer").addEventListener("click", (event) => {
+      if (event.target.id === "drawer") closePreview();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closePreview();
+    });
+
+    const lightBtn = document.getElementById("theme-light");
+    const darkBtn = document.getElementById("theme-dark");
+    lightBtn.addEventListener("click", () => {
+      desk.classList.remove("dark");
+      lightBtn.classList.add("on");
+      darkBtn.classList.remove("on");
+    });
+    darkBtn.addEventListener("click", () => {
+      desk.classList.add("dark");
+      darkBtn.classList.add("on");
+      lightBtn.classList.remove("on");
+    });
+  </script>
+</body>
+</html>

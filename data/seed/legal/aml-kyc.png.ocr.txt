@@ -1,0 +1,14 @@
+﻿SKENOVANÉ / SCANNED
+Advokátska kancelária Hoferová & Bartoš s. r. o.
+aml kyc
+
+AML and client intake (LEG-AML-07)
+
+Issuer: Advokátska kancelária Hoferová & Bartoš s. r. o. · IČO 51 234 567 · Laurinská 12, 811 01 Bratislava
+
+An advocate is an obliged entity under the AML Act (zákon č. 297/2008 Z. z.) when handling property transactions, company formations or funds held for a client.
+Identify the client and the beneficial owner before receiving any funds; verify the beneficial owner against the Business Register and, for public sector counterparties, the Register of Public Sector Partners.
+Enhanced due diligence applies to a retainer above EUR 15,000, to a politically exposed person, and to any counterparty in a high-risk third country.
+Cash payments are capped at EUR 5,000 by zákon č. 394/2012 Z. z., so a cash retainer above that limit is refused outright.
+Report an unusual business operation to the Financial Intelligence Unit of the National Crime Agency without delay, and do not tip off the client.
+Engaging a politically exposed person requires senior partner approval recorded in the file.

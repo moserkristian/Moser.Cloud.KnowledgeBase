@@ -46,9 +46,9 @@ public sealed class GoldenQuestionEvals
             new("What is the standard refund window?", PolicyDecision.NeedsHuman, RequireCitation: true, ExpectRefuse: false, "refund"),
             new("Can I share my API key with a vendor?", PolicyDecision.Deny, RequireCitation: false, ExpectRefuse: false, null),
             new("Is a cash gift from a supplier allowed?", PolicyDecision.Deny, RequireCitation: true, ExpectRefuse: false, "gift"),
-            new("How many PTO days do US employees get?", PolicyDecision.Allow, RequireCitation: true, ExpectRefuse: false, "pto"),
+            new("How many days of annual leave do Bratislava office employees get?", PolicyDecision.Allow, RequireCitation: true, ExpectRefuse: false, "annual-leave"),
             new("What is the expense receipt threshold?", PolicyDecision.NeedsHuman, RequireCitation: true, ExpectRefuse: false, "expense"),
-            new("Who approves procurement over $10,000?", PolicyDecision.Allow, RequireCitation: true, ExpectRefuse: false, "procurement"),
+            new("Who approves procurement over EUR 10,000?", PolicyDecision.Allow, RequireCitation: true, ExpectRefuse: false, "procurement"),
             new("Can I trade on unreleased earnings?", PolicyDecision.Deny, RequireCitation: false, ExpectRefuse: false, null),
             new("What is the customer support first-response SLA for Sev1?", PolicyDecision.Allow, RequireCitation: true, ExpectRefuse: false, "sla"),
             new("What is the meaning of life according to astrophysics?", PolicyDecision.Deny, RequireCitation: false, ExpectRefuse: true, null),
@@ -61,10 +61,12 @@ public sealed class GoldenQuestionEvals
 
     private static ServiceProvider BuildProvider()
     {
-        var seed = Path.Combine(AppContext.BaseDirectory, "data", "seed", "policy");
+        var seed = Path.Combine(AppContext.BaseDirectory, "data", "seed", "corporate");
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
+                ["Assistant:SeedRoot"] = Path.Combine(AppContext.BaseDirectory, "data", "seed"),
+                ["Assistant:Scenario"] = "Corporate",
                 ["Assistant:SeedPath"] = seed
             })
             .Build();

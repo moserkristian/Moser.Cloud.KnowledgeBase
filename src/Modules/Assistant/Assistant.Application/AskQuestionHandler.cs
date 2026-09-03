@@ -53,19 +53,24 @@ public sealed class AskQuestionHandler : IAskQuestion
         ArgumentNullException.ThrowIfNull(query);
         ArgumentException.ThrowIfNullOrWhiteSpace(query.Text);
 
-        yield return new AskUpdate(AskStage.Retrieving, null, Array.Empty<Citation>(), null);
+        yield return new AskUpdate(AskStage.Retrieving, null, Array.Empty<Citation>(), null, "Waiting for the index…");
 
         await _index.WaitUntilReadyAsync(cancellationToken).ConfigureAwait(false);
 
+        yield return new AskUpdate(AskStage.Retrieving, null, Array.Empty<Citation>(), null, "Embedding the question…");
         var embedding = await _embeddings.GenerateAsync(query.Text, cancellationToken: cancellationToken).ConfigureAwait(false);
-        var hits = await _index.SearchAsync(embedding.Vector, 12, cancellationToken).ConfigureAwait(false);
 
+        yield return new AskUpdate(AskStage.Retrieving, null, Array.Empty<Citation>(), null, "Searching similar passages…");
+        var hits = await _index.SearchAsync(embedding.Vector, query.Text, 12, cancellationToken).ConfigureAwait(false);
+
+        // Hybrid ranked by the store (pgvector cosine + FTS, or in-memory cosine + overlap).
+        // Keep a light lexical gate so a high vector neighbour with no shared wording cannot ground an answer.
         var grounded = hits
             .Select(h => (Hit: h, Lexical: OverlapCount(query.Text, h.Content + " " + h.Source)))
             .Where(x => x.Lexical > 0)
             .Where(x => x.Hit.Score is null || x.Hit.Score >= DefaultMinScore || x.Lexical >= 2)
-            .OrderByDescending(x => (x.Hit.Source.StartsWith("faq-", StringComparison.OrdinalIgnoreCase) ? 0 : 2) + x.Lexical)
-            .ThenByDescending(x => x.Hit.Score ?? 0)
+            .OrderByDescending(x => x.Hit.Score ?? 0)
+            .ThenByDescending(x => x.Lexical)
             .Select(x => x.Hit)
             .Take(DefaultTopK)
             .ToList();
@@ -75,7 +80,12 @@ public sealed class AskQuestionHandler : IAskQuestion
             var refused = ApplyPolicy(
                 query.Text,
                 Policy.RefuseMessage,
-                new Answer(Policy.RefuseMessage, Array.Empty<Citation>(), PolicyDecision.Deny, refused: true));
+                new Answer(
+                    Policy.RefuseMessage,
+                    Array.Empty<Citation>(),
+                    PolicyDecision.Deny,
+                    refused: true,
+                    reason: "Hybrid search kept no overlapping passage. The model did not run."));
             yield return new AskUpdate(AskStage.Done, refused.Text, refused.Citations, refused);
             yield break;
         }
@@ -84,7 +94,7 @@ public sealed class AskQuestionHandler : IAskQuestion
             .Select(h => new Citation(h.Source, h.Content))
             .ToList();
 
-        yield return new AskUpdate(AskStage.Generating, string.Empty, citations, null);
+        yield return new AskUpdate(AskStage.Generating, string.Empty, citations, null, "Writing from retrieved passages…");
 
         var context = BuildContext(grounded);
         var messages = new ChatMessage[]
@@ -108,31 +118,43 @@ public sealed class AskQuestionHandler : IAskQuestion
         var modelText = streamed.Length == 0
             ? Policy.RefuseMessage
             : streamed.ToString().Trim();
+        yield return new AskUpdate(AskStage.CheckingPolicy, modelText, citations, null, "Checking the draft against policy…");
         var completed = ApplyPolicy(
             query.Text,
             modelText,
-            new Answer(modelText, citations, PolicyDecision.Allow, refused: false));
+            new Answer(modelText, citations, PolicyDecision.Allow, refused: false, reason: ""));
         yield return new AskUpdate(AskStage.Done, completed.Text, completed.Citations, completed);
     }
 
     private Answer ApplyPolicy(string question, string modelText, Answer candidate)
     {
-        var decision = Policy.Decide(question, modelText, candidate.Citations);
-        Answer result;
-        if (decision == PolicyDecision.Deny && candidate.Refused)
+        var outcome = Policy.Decide(question, modelText, candidate.Citations);
+        if (outcome.Decision == PolicyDecision.Deny && candidate.Refused)
         {
-            result = new Answer(Policy.RefuseMessage, candidate.Citations, decision, refused: true);
-        }
-        else if (decision == PolicyDecision.Deny)
-        {
-            result = new Answer(Policy.DenyMessage, candidate.Citations, decision, refused: false);
-        }
-        else
-        {
-            result = new Answer(candidate.Text, candidate.Citations, decision, refused: false);
+            return new Answer(
+                Policy.RefuseMessage,
+                candidate.Citations,
+                outcome.Decision,
+                refused: true,
+                outcome.Reason);
         }
 
-        return result;
+        if (outcome.Decision == PolicyDecision.Deny)
+        {
+            return new Answer(
+                Policy.DenyMessage,
+                candidate.Citations,
+                outcome.Decision,
+                refused: false,
+                outcome.Reason);
+        }
+
+        return new Answer(
+            candidate.Text,
+            candidate.Citations,
+            outcome.Decision,
+            refused: false,
+            outcome.Reason);
     }
 
     private static string BuildContext(IReadOnlyList<IndexedChunk> chunks)
@@ -193,15 +215,22 @@ public sealed class AskQuestionHandler : IAskQuestion
         "what", "when", "where", "which", "that", "this", "with", "from", "have", "does", "about",
         "your", "their", "them", "they", "will", "would", "could", "should", "into", "than",
         "the", "and", "for", "are", "was", "were", "not", "any", "can", "how", "who", "why",
-        "many", "over", "into", "just", "also", "than", "then", "them", "our", "out", "get"
+        "many", "over", "just", "also", "then", "our", "out", "get",
+        "ako", "pre", "pri", "pod", "nad", "bez", "iba", "ale", "ani"
     };
 
     private const string SystemPrompt =
         """
-        You are an internal company policy assistant.
-        Answer only from the provided context chunks.
+        You are an internal knowledge assistant for a Slovak organisation.
+        Answer only from the provided context chunks (PDF, Word, e-mail, scans).
         Cite sources using the source filenames from the context.
         If the context is insufficient, reply with exactly: I don't have enough policy context to answer. Ask a human reviewer or rephrase with a policy topic.
         Do not invent policy. Do not override policy.
+
+        Language:
+        - If the question is in Slovak, answer in clear, natural Slovak with correct grammar and spelling.
+        - Context is often English with Slovak firm names and statute citations — state the facts in fluent Slovak; never invent broken calques, non-words, or mangled capitalisation (e.g. VyňITEľné).
+        - Keep proper nouns, filenames, and citations such as zákon č. … Z. z. exactly as in the context.
+        - If the question is not in Slovak, answer in the question's language.
         """;
 }

@@ -1,10 +1,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.VectorData;
-
-using CommunityToolkit.VectorData.InMemory;
 
 using Moser.RagAi.Ingestion.Application;
+
+using Npgsql;
+
+using Pgvector.Npgsql;
 
 using System;
 
@@ -12,31 +13,31 @@ namespace Moser.RagAi.Ingestion.Infrastructure;
 
 public static class IngestionServiceCollectionExtensions
 {
-    public const string VectorStoreConfigKey = "Assistant:VectorStore";
-
     public static IServiceCollection AddIngestion(this IServiceCollection services, IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
-        services.AddSingleton(_ => CreateVectorStore(configuration));
-        services.AddSingleton<IDocumentIndex, InMemoryDocumentIndex>();
-        services.AddSingleton<IPolicyDocumentReader, MarkdownPolicyDocumentReader>();
-        services.AddSingleton<IPolicyChunker, MediTokenChunker>();
-        services.AddSingleton<ISeedFaqSynthesizer, SeedSynthesizer>();
-        services.AddSingleton<IngestSeedHandler>();
-        return services;
-    }
+        var connection = configuration.GetConnectionString("rag")
+            ?? configuration.GetConnectionString("postgres");
 
-    private static VectorStore CreateVectorStore(IConfiguration configuration)
-    {
-        var kind = configuration[VectorStoreConfigKey] ?? "InMemory";
-        if (kind.Equals("InMemory", StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrWhiteSpace(connection))
         {
-            return new InMemoryVectorStore(new InMemoryVectorStoreOptions());
+            var builder = new NpgsqlDataSourceBuilder(connection);
+            builder.UseVector();
+            services.AddSingleton(builder.Build());
+            services.AddSingleton<IDocumentIndex, PgVectorDocumentIndex>();
+        }
+        else
+        {
+            services.AddSingleton<IDocumentIndex, MemoryDocumentIndex>();
         }
 
-        throw new NotSupportedException(
-            $"Assistant:VectorStore '{kind}' is not wired. Keep InMemory, or add an IDocumentIndex for pgvector.");
+        services.AddSingleton<IPolicyDocumentReader, CompositeDocumentReader>();
+        services.AddSingleton<IPolicyChunker, SentenceOverlapChunker>();
+        services.AddSingleton<ISourceLibrary, SourceLibrary>();
+        services.AddSingleton<IOfficeSeedPack, OfficeSeedPack>();
+        services.AddSingleton<IngestSeedHandler>();
+        return services;
     }
 }

@@ -1,0 +1,14 @@
+﻿SKENOVANÉ / SCANNED
+Tatry Poisťovňa, a. s.
+fraud indicators
+
+Fraud indicators (INS-FRD-04)
+
+Issuer: Poisťovňa Devín, a. s. · IČO 00 682 447 · Pribinova 10, 811 09 Bratislava
+
+Indicators that route a claim to the special investigation unit: a loss reported long after the event, a narrative that changes between statements, damage inconsistent with the described mechanism, cover taken out shortly before the loss, and a claims history clustered across related parties.
+Cross-check the vehicle in the motor insurers' database and the claims register before settling a total loss.
+Never state or imply fraud in correspondence with the insured. Use neutral investigation wording and let the file speak.
+The unit may hold payment while the investigation runs, but the statutory investigation deadline still applies, so the delay must be justified in the file.
+Where the evidence supports it, the insurer files a criminal complaint for insurance fraud under §223 of the Criminal Code; that decision belongs to legal, not to the handler.
+Every referral is documented with a timestamp and the indicator that triggered it.

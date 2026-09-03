@@ -1,0 +1,406 @@
+/* Left rail on wide screens; bottom strip on narrow. No manual position switching. */
+
+.shell {
+    --page-top: 1.75rem;
+    --page-side: 1.5rem;
+    --dock-thin: 76px;
+    --dock-wide: 220px;
+    --dock-pad-x: 23px;
+    --dock-pad-top: 30px;
+    --dock-bg: var(--bg);
+    --dock-ink: var(--ink);
+    --dock-hover: color-mix(in srgb, var(--ink) 6%, transparent);
+    --dock-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+    --dock-ico: 26px;
+    --dock-item: 52px;
+    --dock-gap: 4px;
+    --dock-nav-lift: calc(var(--dock-item) + var(--dock-gap));
+    /* Keeps the hover/active pill off the panel edges (Instagram web). */
+    --dock-inset: 8px;
+    min-height: 100vh;
+    position: relative;
+}
+
+.shell-main {
+    min-width: 0;
+    min-height: 100vh;
+    padding-left: var(--dock-thin);
+}
+
+html:has(.ask-desk) .shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.shell-main:has(.ask-desk) {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.dock {
+    position: fixed;
+    z-index: 40;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--dock-thin);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    box-sizing: border-box;
+    padding: 18px 0 16px;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    overflow: hidden;
+    transition: width 200ms var(--dock-ease), background-color 160ms ease;
+}
+
+/* Keyboard focus expands; a mouse click leaves no :focus-visible, so the
+   panel collapses again as soon as the pointer leaves. */
+.dock:hover,
+.dock:has(:focus-visible) {
+    width: var(--dock-wide);
+    background: var(--dock-bg);
+}
+
+/* Clicking a different route locks the rail thin for that hover only.
+   Attribute lives on html so Blazor re-renders of .dock cannot wipe it.
+   Lock runs on click (not pointerdown) so the hit target stays under the cursor.
+   The next real leave/re-enter uses :hover again; keyboard :focus-visible still expands. */
+@media (min-width: 769px) {
+    html[data-dock-icon-locked] .dock:not(:has(:focus-visible)),
+    .dock.is-icon-locked:not(:has(:focus-visible)) {
+        width: var(--dock-thin);
+        background: transparent;
+    }
+
+    html[data-dock-icon-locked] .dock:not(:has(:focus-visible)) .dock-label,
+    .dock.is-icon-locked:not(:has(:focus-visible)) .dock-label {
+        opacity: 0;
+        visibility: hidden;
+        transform: translateX(-8px);
+    }
+}
+
+.dock-ico-wrap {
+    position: relative;
+    width: var(--dock-ico);
+    height: var(--dock-ico);
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+}
+
+.dock-ico {
+    width: var(--dock-ico) !important;
+    height: var(--dock-ico) !important;
+    max-width: var(--dock-ico);
+    max-height: var(--dock-ico);
+    display: block;
+    overflow: hidden;
+    grid-area: 1 / 1;
+    color: inherit;
+    pointer-events: none;
+}
+
+/* Both glyphs stay stacked; opacity swap keeps icon box size stable. */
+.dock-ico-fill,
+.dock-ico-outline {
+    display: block;
+    opacity: 1;
+}
+.dock-ico-fill { opacity: 0; }
+.dock-ico-outline,
+.dock-ico-outline * {
+    fill: none !important;
+}
+
+.dock-link.active .dock-ico-outline { opacity: 0; }
+.dock-link.active .dock-ico-fill { opacity: 1; }
+
+a.dock-link,
+a.dock-brand {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: var(--dock-item);
+    min-height: var(--dock-item);
+    width: auto;
+    margin: 0 var(--dock-inset);
+    padding: 0 12px 0 calc(var(--dock-pad-x) - var(--dock-inset));
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--dock-ink);
+    text-decoration: none !important;
+    text-decoration-color: transparent !important;
+    font: inherit;
+    cursor: pointer;
+    flex: 0 0 auto;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 120ms var(--dock-ease);
+}
+
+a.dock-link:hover,
+a.dock-link.active:hover,
+a.dock-brand:hover {
+    background: var(--dock-hover);
+    color: var(--dock-ink);
+    text-decoration: none !important;
+}
+
+a.dock-link.active {
+    background: transparent;
+}
+
+.dock-label {
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-8px);
+    transition:
+        opacity 180ms var(--dock-ease),
+        transform 200ms var(--dock-ease);
+    font-size: var(--fs-md);
+    font-weight: var(--fw-regular);
+    letter-spacing: 0;
+    color: var(--dock-ink);
+    flex: 0 0 auto;
+    pointer-events: none;
+}
+
+.dock:hover .dock-label,
+.dock:has(:focus-visible) .dock-label {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
+
+.dock-link.active .dock-label {
+    font-weight: var(--fw-bold);
+}
+
+.dock-nav {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    justify-content: center;
+    gap: var(--dock-gap);
+    padding-top: 2px;
+    padding-bottom: 0;
+    transform: translateY(calc(-1 * var(--dock-nav-lift)));
+}
+
+@media (max-height: 640px) and (min-width: 769px) {
+    .dock-nav {
+        transform: none;
+    }
+}
+
+.rag-mark {
+    position: relative;
+    width: var(--dock-ico);
+    height: var(--dock-ico);
+    display: block;
+    color: inherit;
+    overflow: visible;
+    flex: 0 0 auto;
+}
+
+.rag-mark svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+    color: inherit;
+}
+
+.rag-mark-lg {
+    width: 72px;
+    height: 72px;
+}
+
+/* —— Narrow: bottom icon strip only —— */
+@media (max-width: 768px) {
+    .shell {
+        --page-top: 1.25rem;
+        --page-side: 1.125rem;
+        --dock-thin: 0px;
+        --dock-item: 49px;
+        --dock-ico: 26px;
+        --dock-bar-h: 49px;
+    }
+
+    /* No frosted glass veil — solid Instagram-style strip only. */
+    .shell::before {
+        content: none;
+        display: none;
+    }
+
+    .shell-main {
+        padding-left: 0;
+        padding-bottom: calc(var(--dock-bar-h) + env(safe-area-inset-bottom, 0px));
+        padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    .shell-main:has(.ask-desk) {
+        height: 100%;
+        height: 100dvh;
+        max-height: 100dvh;
+        min-height: 0;
+    }
+
+    .dock {
+        top: auto;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-width: 100vw;
+        height: calc(var(--dock-bar-h) + env(safe-area-inset-bottom, 0px));
+        margin: 0;
+        flex-direction: row;
+        align-items: stretch;
+        justify-content: stretch;
+        padding: 0 0 env(safe-area-inset-bottom, 0px);
+        overflow: hidden;
+        background: var(--paper);
+        border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+        box-shadow: none;
+        transition: none;
+    }
+
+    .dock:hover,
+    .dock:has(:focus-visible),
+    html[data-dock-icon-locked] .dock,
+    html[data-dock-icon-locked] .dock:hover,
+    .dock.is-icon-locked,
+    .dock.is-icon-locked:hover,
+    .dock.is-icon-locked:not(:has(:focus-visible)) {
+        width: 100%;
+        background: var(--paper);
+    }
+
+    .dock-nav {
+        flex-direction: row;
+        flex: 1 1 0;
+        width: 100%;
+        min-width: 0;
+        height: var(--dock-bar-h);
+        justify-content: space-evenly;
+        align-items: stretch;
+        gap: 0;
+        padding: 0;
+        transform: none;
+    }
+
+    .dock-brand {
+        display: none !important;
+        flex: 0 0 0 !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
+        border: 0 !important;
+    }
+
+    a.dock-link {
+        flex: 1 1 0;
+        width: 0;
+        min-width: 0;
+        max-width: none;
+        height: var(--dock-bar-h);
+        min-height: var(--dock-bar-h);
+        margin: 0;
+        padding: 0;
+        border-radius: 0;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        transition: none;
+    }
+
+    /* Bottom strip: pointer must not restyle items at all. */
+    a.dock-link:hover,
+    a.dock-link:focus,
+    a.dock-link:active,
+    a.dock-link.active,
+    a.dock-link.active:hover,
+    a.dock-link.active:focus,
+    a.dock-link.active:active,
+    a.dock-brand:hover {
+        background: transparent !important;
+        color: var(--dock-ink);
+        text-decoration: none !important;
+        transform: none;
+        box-shadow: none;
+    }
+
+    a.dock-link:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--ink) 40%, transparent);
+        outline-offset: -4px;
+        background: transparent !important;
+    }
+
+    .dock-label {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .dock-ico-wrap {
+        width: var(--dock-ico);
+        height: var(--dock-ico);
+        overflow: hidden;
+    }
+
+    .content {
+        padding: var(--page-top) var(--page-side) var(--space-7);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dock,
+    .dock-label {
+        transition: none;
+    }
+}
+
+#blazor-error-ui {
+    background: #f6e6c8;
+    color: #2a2926;
+    bottom: 0;
+    display: none;
+    left: 0;
+    padding: var(--space-3) var(--space-5);
+    position: fixed;
+    width: 100%;
+    font-size: var(--fs-sm);
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: var(--space-3);
+    top: var(--space-2);
+}

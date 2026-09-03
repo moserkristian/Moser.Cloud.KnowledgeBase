@@ -1,0 +1,21 @@
+﻿SKENOVANÉ / SCANNED
+Moser Slovakia s. r. o.
+data classification
+
+Data classification (SEC-DATA)
+
+Issuer: Moser Slovakia s. r. o. · IČO 47 556 210 · Twin City C, Mlynské nivy 12, 821 09 Bratislava
+
+Effective: 18 August 2026  
+Owner: Information Security, Moser Slovakia s. r. o.
+
+Labels: Public, Internal, Confidential, Restricted.
+
+Restricted covers customer personal data, payroll and unreleased financials. Never export customer PII to a private mailbox or to an unsanctioned cloud service. Do not dump customer PII into a ticket or a chat channel.
+
+Confidential source code stays in the company Git host. Screenshots of Restricted data are prohibited in chat.
+
+Slovak and EU obligations
+Personal data is processed under GDPR and the Personal Data Protection Act (zákon č. 18/2018 Z. z.). A personal data breach is reported to Úrad na ochranu osobných údajov SR within 72 hours of discovery, and affected people are informed when the risk is high. Transfers outside the EEA need a documented legal basis. A significant cyber security incident is also reported to the National Security Authority under zákon č. 69/2018 Z. z.
+
+If a vendor asks for a production data extract, open a Security review. Do not send a CSV "just this once".

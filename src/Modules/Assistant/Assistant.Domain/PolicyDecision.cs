@@ -6,3 +6,5 @@ public enum PolicyDecision
     Deny = 1,
     NeedsHuman = 2
 }
+
+public sealed record PolicyOutcome(PolicyDecision Decision, string Reason);

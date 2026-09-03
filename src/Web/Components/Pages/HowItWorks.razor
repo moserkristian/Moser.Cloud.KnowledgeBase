@@ -1,0 +1,182 @@
+@page "/how-it-works"
+@rendermode InteractiveServer
+@using System
+@using System.Collections.Generic
+@using System.Linq
+@inject IAssistantWorkspace Workspace
+
+<PageTitle>How it works</PageTitle>
+
+<section class="page">
+    <header class="page-head">
+        <h1 class="page-title">How this RAG works</h1>
+        <p class="page-lead">Office files go through a converter, then pgvector. The model only reads retrieved text.</p>
+    </header>
+
+    <div class="split">
+        <div class="split-primary split-stack">
+            <section class="block">
+                <h2 class="block-title">The four steps</h2>
+                <p class="block-note">Convert at startup. Retrieve and generate on every question.</p>
+                <ol class="how-flow">
+                    <li><strong>Convert</strong> — PdfPig, Open XML, MIME <code>.eml</code>, raster + OCR sidecar.</li>
+                    <li><strong>Prepare</strong> — sentence chunks (640 / 96 overlap), embed, upsert pgvector (HNSW + FTS).</li>
+                    <li><strong>Retrieve</strong> — embed the question, hybrid search, drop neighbours with no shared wording.</li>
+                    <li><strong>Generate</strong> — the model writes from those passages; C# policy runs after. The reason is under the answer on Ask.</li>
+                </ol>
+            </section>
+
+            <section class="block">
+                <h2 class="block-title">One file → one row</h2>
+                <p class="block-note">Sketch of chunk → embed → shelf. Live parse is in the converter.</p>
+                <div id="ingest-graph">
+                    <div class="ig-toolbar">
+                        <button type="button" class="ig-btn" data-ig="back" aria-label="Previous step">◀</button>
+                        <button type="button" class="ig-btn primary" data-ig="next">Next</button>
+                        <button type="button" class="ig-btn" data-ig="play">Play through</button>
+                        <button type="button" class="ig-btn" data-ig="burst">Show whole seed</button>
+                    </div>
+                    <ol class="ig-rail" data-ig="rail"></ol>
+                    <article class="ig-teach" data-ig="teach">
+                        <div class="ig-teach-kicker" data-ig="teachKick"></div>
+                        <h3 data-ig="teachTitle"></h3>
+                        <p class="ig-teach-why" data-ig="teachWhy"></p>
+                        <div class="ig-teach-pair">
+                            <div><span>Still true</span><p data-ig="teachSame"></p></div>
+                            <div class="ig-new"><span>What changed</span><p data-ig="teachChange"></p></div>
+                        </div>
+                        <pre class="ig-doc" data-ig="teachDoc"></pre>
+                        <div class="ig-meter" data-ig="teachMeter" hidden><i></i><b data-ig="teachMeterLbl"></b></div>
+                        <div class="ig-vecbars" data-ig="teachVec" hidden></div>
+                    </article>
+                    <div class="ig-card">
+                        <div class="ig-tiers"><span>Disk</span><span>Window</span><span>Coordinates</span><span>Shelf</span></div>
+                        <div class="ig-scroll">
+                            <div class="ig-board" data-ig="graph">
+                                <svg class="ig-edges" data-ig="edges"></svg>
+                                <div class="ig-cols" data-ig="cols"></div>
+                                <div class="ig-flow" data-ig="flow"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ig-index">
+                        <div class="ig-index-head">
+                            <h3>The shelf</h3>
+                            <p>Clusters are a 2D sketch of embedding space. Production uses pgvector.</p>
+                        </div>
+                        <div class="ig-probes">
+                            <span class="ig-lens-label">Ask the map</span>
+                            <button type="button" class="ig-btn" data-probe="expense">Receipt over EUR 25?</button>
+                            <button type="button" class="ig-btn" data-probe="gift">Cash gift from a supplier?</button>
+                            <button type="button" class="ig-btn" data-probe="leave">Annual leave in Bratislava?</button>
+                        </div>
+                        <div class="ig-index-split">
+                            <div class="ig-table-wrap">
+                                <table class="ig-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Id</th>
+                                            <th>Text (model)</th>
+                                            <th>Point (search)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-ig="table"></tbody>
+                                </table>
+                            </div>
+                            <div class="ig-space-wrap">
+                                <svg class="ig-space" data-ig="space" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+                                <div class="ig-space-cap">Labeled neighborhoods · a question is a new point</div>
+                            </div>
+                        </div>
+                        <div class="ig-ground" data-ig="ground">
+                            <div class="ig-ground-kicker">What the model would read</div>
+                            <p data-ig="groundBody">Finish the walk, or show the whole seed, then ask the map.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <aside class="split-secondary split-stack">
+            <section class="block">
+                <h2 class="block-title">Converter</h2>
+                @if (sources.Count == 0)
+                {
+                    <p class="block-note">Index is still loading, or the corpus is empty.</p>
+                }
+                else
+                {
+                    <label class="field-label" for="how-src">Office file</label>
+                    <select id="how-src" class="select" aria-label="Office file" @bind="selectedSource">
+                        @foreach (var doc in sources)
+                        {
+                            <option value="@doc.FileName">@doc.FileName (@doc.Kind)</option>
+                        }
+                    </select>
+                    @if (Selected is not null)
+                    {
+                        <div class="how-preview panel" style="margin-top: var(--space-3)">
+                            @if (Selected.Kind is "png" or "scan")
+                            {
+                                <img src="/inbox/file/@Uri.EscapeDataString(Selected.FileName)" alt="@Selected.Title" />
+                            }
+                            else if (Selected.Kind == "pdf")
+                            {
+                                <iframe title="@Selected.Title" src="/inbox/file/@Uri.EscapeDataString(Selected.FileName)"></iframe>
+                            }
+                            else
+                            {
+                                <pre>@Clip(Selected.ExtractedText, 900)</pre>
+                            }
+                        </div>
+                        <ol class="how-steps">
+                            @foreach (var step in Selected.Steps)
+                            {
+                                <li class="@(step.Ok ? "ok" : "fail")">
+                                    <strong>@step.Name</strong>
+                                    <span>@step.Detail</span>
+                                    @if (step.Confidence is not null)
+                                    {
+                                        <span>OCR @step.Confidence.Value.ToString("P0")</span>
+                                    }
+                                </li>
+                            }
+                        </ol>
+                    }
+                }
+            </section>
+
+            <section class="block panel how-glossary">
+                <h2 class="block-title">Vocabulary</h2>
+                <dl class="data-list how-terms">
+                    <dt>Chunk</dt>
+                    <dd>Max 640 tokens, overlap 96.</dd>
+                    <dt>Embedding</dt>
+                    <dd><code>nomic-embed-text</code> (768-d) or the stub bag-of-words.</dd>
+                    <dt>pgvector</dt>
+                    <dd>Cosine distance <code>&lt;=&gt;</code> + simple FTS, HNSW index.</dd>
+                    <dt>Citation</dt>
+                    <dd>The office filename stored next to the chunk.</dd>
+                </dl>
+            </section>
+
+        </aside>
+    </div>
+</section>
+
+@code {
+    private IReadOnlyList<SourceDocument> sources = [];
+    private string? selectedSource;
+
+    private SourceDocument? Selected
+        => sources.FirstOrDefault(s => s.FileName == selectedSource) ?? sources.FirstOrDefault();
+
+    protected override void OnInitialized()
+    {
+        sources = Workspace.ListSources();
+        selectedSource = sources.FirstOrDefault()?.FileName;
+    }
+
+    private static string Clip(string text, int n)
+        => string.IsNullOrEmpty(text) ? "(empty extract)" : text.Length <= n ? text : text[..n].TrimEnd() + "…";
+}

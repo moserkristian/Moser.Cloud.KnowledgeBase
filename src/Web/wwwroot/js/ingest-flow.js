@@ -11,17 +11,17 @@
         all: '<path d="M4 7h16v12H4z"/><path d="M8 11h8M8 15h6"/>'
     };
     const ico = (k) =>
-        `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="url(#igAccent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
+        `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
     const capIco = (k) =>
-        `<svg viewBox="0 0 24 24" fill="none" stroke="url(#igAccent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
+        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
 
     const HERO = "expense-receipts.md";
     const HERO_TOKENS = 148;
     const HERO_DOC =
-        "Expense policy — receipts (FIN-EXP-25)\n\nItemized receipts are required for any expense over $25.\nCard statements are not a substitute.";
+        "Expense policy — receipts (FIN-EXP-25)\n\nItemised receipts are required for any expense over EUR 25.\nA card statement is not a substitute.";
 
     const POLICIES = [
-        { name: "annual-leave-eu.md", tokens: 121 },
+        { name: "annual-leave.md", tokens: 121 },
         { name: "code-of-conduct.md", tokens: 156 },
         { name: "customer-support-sla.md", tokens: 134 },
         { name: "data-classification.md", tokens: 142 },
@@ -32,7 +32,7 @@
         { name: "insider-trading.md", tokens: 128 },
         { name: "password-policy.md", tokens: 118 },
         { name: "procurement-approval.md", tokens: 140 },
-        { name: "pto-us.md", tokens: 126 },
+        { name: "annual-leave-nitra.md", tokens: 126 },
         { name: "refund-premium.md", tokens: 132 },
         { name: "refund-standard.md", tokens: 129 },
         { name: "remote-work-policy.md", tokens: 135 },
@@ -43,7 +43,7 @@
     ];
 
     const NODES = {
-        disk: { col: 0, ico: "disk", title: "Seed files", sub: "data/seed/policy", badge: "19 .md", files: true },
+        disk: { col: 0, ico: "disk", title: "Seed files", sub: "data/seed/corporate", badge: "19 .md", files: true },
         synth: { col: 0, ico: "synth", title: "FAQ synth", sub: "later · 50 in-proc", badge: "not this file" },
         chunker: { col: 1, ico: "chunk", title: "Window", sub: "max 640 · overlap 96", badge: "measure" },
         embed: { col: 2, ico: "embed", title: "Coordinates", sub: "nomic-embed-text", badge: "768-d" },
@@ -106,30 +106,30 @@
     ];
 
     const CLUSTER = {
-        expense: [22, 74], gift: [78, 22], pto: [18, 22], refund: [76, 78],
+        expense: [22, 74], gift: [78, 22], leave: [18, 22], refund: [76, 78],
         security: [50, 14], travel: [88, 50], vendor: [62, 86], conduct: [40, 44],
         remote: [10, 52], sla: [50, 58], other: [52, 50]
     };
     const CLUSTER_LAB = [
         { t: "expense", x: 22, y: 86 },
         { t: "gifts", x: 78, y: 12 },
-        { t: "time off", x: 18, y: 12 }
+        { t: "leave", x: 18, y: 12 }
     ];
 
     const EXCERPT = {
-        "expense-receipts.md": "Itemized receipts are required for any expense over $25. Card statements are not a substitute.",
-        "gift-and-hospitality.md": "Cash gifts are prohibited. Branded items under $25 are generally allowed.",
-        "pto-us.md": "US PTO is tracked in Workday. Do not invent extra days.",
-        "annual-leave-eu.md": "EU annual leave follows the local HRIS and statutory minimums.",
+        "expense-receipts.md": "Itemised receipts are required for any expense over EUR 25. A card statement is not a substitute.",
+        "gift-and-hospitality.md": "Cash gifts are prohibited. Branded items under EUR 25 are generally allowed.",
+        "annual-leave-nitra.md": "Nitra plant shift employees accrue 20 days of annual leave.",
+        "annual-leave.md": "Bratislava office employees receive 25 days of annual leave.",
         "refund-standard.md": "Standard refunds follow the posted window in the matching policy.",
-        "information-security.md": "Report suspected phishing to infosec within one hour.",
-        "expense-field-sales.md": "Field sales expenses still need receipts over $25."
+        "information-security.md": "Report suspected phishing to Information Security within one hour.",
+        "expense-field-sales.md": "Field sales receipts start at EUR 50, not EUR 25."
     };
 
     const PROBES = {
-        expense: { q: "Need a receipt over $25?", topic: "expense" },
+        expense: { q: "Receipt over EUR 25?", topic: "expense" },
         gift: { q: "Cash gift from a supplier?", topic: "gift" },
-        pto: { q: "How many PTO days?", topic: "pto" }
+        leave: { q: "Annual leave in Bratislava?", topic: "leave" }
     };
 
     let ctl = null;
@@ -151,7 +151,7 @@
         const n = name.toLowerCase();
         if (n.includes("expense") || n.includes("receipt")) return "expense";
         if (n.includes("gift")) return "gift";
-        if (n.includes("pto") || n.includes("leave") || n.includes("annual")) return "pto";
+        if (n.includes("leave") || n.includes("annual") || n.includes("dovolen")) return "leave";
         if (n.includes("refund") || n.includes("return")) return "refund";
         if (n.includes("password") || n.includes("security") || n.includes("classif")) return "security";
         if (n.includes("travel")) return "travel";
@@ -217,15 +217,6 @@
         };
 
         if (!colsEl || !graph || !svg || !flow) return { destroy() {} };
-
-        const defs = document.createElementNS(NS, "defs");
-        const grad = document.createElementNS(NS, "linearGradient");
-        grad.id = "igAccent";
-        grad.setAttribute("x1", "0"); grad.setAttribute("y1", "0");
-        grad.setAttribute("x2", "1"); grad.setAttribute("y2", "1");
-        grad.innerHTML = '<stop offset="0" stop-color="#8b929f"/><stop offset=".5" stop-color="#f6f8fc"/><stop offset="1" stop-color="#e8ecf3"/>';
-        defs.appendChild(grad);
-        svg.appendChild(defs);
 
         const nodeEls = {};
         colsEl.replaceChildren();
@@ -309,10 +300,10 @@
                         t.setAttribute("x", String(pt.x));
                         t.setAttribute("y", String(pt.y - 6));
                         t.setAttribute("text-anchor", "middle");
-                        t.setAttribute("font-family", "JetBrains Mono, ui-monospace, monospace");
+                        t.setAttribute("font-family", "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace");
                         t.setAttribute("font-size", "9");
-                        t.setAttribute("fill", "#d3d8e0");
-                        t.setAttribute("stroke", "#050506");
+                        t.setAttribute("fill", "var(--ig-soft)");
+                        t.setAttribute("stroke", "var(--ig-panel)");
                         t.setAttribute("stroke-width", "3");
                         t.setAttribute("paint-order", "stroke");
                         t.textContent = label;

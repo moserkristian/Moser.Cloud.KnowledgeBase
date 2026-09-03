@@ -1,0 +1,35 @@
+From: Mgr. Zuzana Králiková <z.kralikova@moser.sk>
+To: all-ba@moser.sk
+Cc: compliance@moser.sk
+Subject: information security
+Date: Sun, 01 Mar 2026 08:14:00 GMT
+Message-ID: <2971124b530a44fa9b1e123ae6729f0c@moser.sk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Mailer: Microsoft Outlook 16.0
+
+Dobrý deň,
+
+Information security — credentials (INFOSEC-03)
+
+Issuer: Moser Slovakia s. r. o. · IČO 47 556 210 · Twin City C, Mlynské nivy 12, 821 09 Bratislava
+
+Effective: 18 August 2026  
+Owner: Information Security, Moser Slovakia s. r. o.
+
+Passwords, API keys and service credentials are classified Restricted. Employees must not share passwords, API keys or credentials with vendors, with colleagues, or by pasting them into a ticket.
+
+- INFOSEC-03 requires every API key to live in the approved secrets vault.
+- Rotate an API key immediately if it was pasted into chat or e-mail.
+- SSO with multi-factor authentication is mandatory for every production console.
+
+Never share an API key, not even with a trusted vendor engineer. Ask Vendor Access to issue a scoped, time-limited credential instead.
+
+Report suspected phishing to Information Security within one hour.
+
+S pozdravom
+Mgr. Zuzana Králiková
+People Operations / Compliance
+Moser Slovakia s. r. o.
+Twin City C, Mlynské nivy 12, 821 09 Bratislava

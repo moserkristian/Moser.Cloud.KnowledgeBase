@@ -365,3 +365,6 @@ FodyWeavers.xsd
 # JetBrains
 .idea/
 
+# Local verification screenshots and build dumps
+.tmp-verify/
+

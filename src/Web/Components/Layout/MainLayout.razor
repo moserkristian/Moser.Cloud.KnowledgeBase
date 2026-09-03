@@ -1,13 +1,72 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<div class="shell">
+    <aside class="dock" aria-label="Main navigation">
+        <a class="dock-brand" href="" title="RAG + AI" aria-label="RAG plus AI">
+            <span class="dock-ico-wrap" aria-hidden="true">
+                <RagMark />
+            </span>
+            <span class="dock-label">RAG + AI</span>
+        </a>
 
-    <main>
-        <article class="content">
-            @Body
-        </article>
+        <nav class="dock-nav">
+            <NavLink class="dock-link" href="" Match="NavLinkMatch.All" title="Home" aria-label="Home">
+                <span class="dock-ico-wrap" aria-hidden="true">
+                    <svg class="dock-ico dock-ico-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9.005 16.545a2.997 2.997 0 0 1 2.997-2.997A2.997 2.997 0 0 1 15 16.545V22h7V11.543L12 2 2 11.543V22h7.005Z"/>
+                    </svg>
+                    <svg class="dock-ico dock-ico-fill" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M22 23h-6.001a1 1 0 0 1-1-1v-5.455a2.997 2.997 0 1 0-5.993 0V22a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V11.543a1.002 1.002 0 0 1 .31-.724l10-9.543a1.001 1.001 0 0 1 1.38 0l10 9.543a1.002 1.002 0 0 1 .31.724V22a1 1 0 0 1-1 1Z"/>
+                    </svg>
+                </span>
+                <span class="dock-label">Home</span>
+            </NavLink>
+
+            <NavLink class="dock-link" href="ask" title="Ask" aria-label="Ask a knowledge-base question">
+                <span class="dock-ico-wrap" aria-hidden="true">
+                    <svg class="dock-ico dock-ico-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <svg class="dock-ico dock-ico-fill" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/>
+                    </svg>
+                </span>
+                <span class="dock-label">Ask</span>
+            </NavLink>
+
+            <NavLink class="dock-link" href="status" title="System status" aria-label="System status">
+                <span class="dock-ico-wrap" aria-hidden="true">
+                    <svg class="dock-ico dock-ico-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10"/>
+                        <line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                    <svg class="dock-ico dock-ico-fill" viewBox="0 0 24 24" fill="currentColor">
+                        <rect x="15" y="10" width="5" height="10" rx="1"/>
+                        <rect x="9.5" y="4" width="5" height="16" rx="1"/>
+                        <rect x="4" y="14" width="5" height="6" rx="1"/>
+                    </svg>
+                </span>
+                <span class="dock-label">Status</span>
+            </NavLink>
+
+            <NavLink class="dock-link" href="how-it-works" title="How it works" aria-label="How it works">
+                <span class="dock-ico-wrap" aria-hidden="true">
+                    <svg class="dock-ico dock-ico-outline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                        <line x1="12" y1="17.15" x2="12.01" y2="17.15"/>
+                    </svg>
+                    <svg class="dock-ico dock-ico-fill" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M12 5.2c-2.2 0-4 1.68-4 3.75a1.1 1.1 0 0 0 2.2 0c0-.9.8-1.55 1.8-1.55s1.8.65 1.8 1.55c0 .7-.32 1.15-1.35 1.95l-.4.3C11.05 12.05 10.4 12.9 10.4 14.6v.3a1.1 1.1 0 1 0 2.2 0v-.3c0-.72.22-1.12 1.12-1.85l.42-.32C15.5 11.2 16.2 10.2 16.2 8.95c0-2.07-1.8-3.75-4.2-3.75z"/>
+                        <circle fill="currentColor" cx="12" cy="17.2" r="1.15"/>
+                    </svg>
+                </span>
+                <span class="dock-label">How it works</span>
+            </NavLink>
+        </nav>
+    </aside>
+
+    <main class="shell-main">
+        @Body
     </main>
 </div>

@@ -1,138 +1,464 @@
-@page "/assistant/ask"
+@page "/ask"
 @rendermode InteractiveServer
 @implements IDisposable
 @using System
 @using System.Collections.Generic
+@using System.Linq
+@using System.Net
+@using System.Text
 @using System.Threading
 @inject IAskQuestion Assistant
-@inject AssistantRuntimeInfo Runtime
+@inject IAssistantWorkspace Workspace
+@inject IJSRuntime JS
 
-<PageTitle>Policy assistant</PageTitle>
+<PageTitle>Ask</PageTitle>
 
-<section class="ask">
-    <header class="ask-head">
-        <p class="eyebrow">Knowledge</p>
-        <h1>Policy assistant</h1>
-        <p>
-            Answers come only from retrieved chunks. Tokens stream as the model writes; Policy can still Deny after the last token.
-            <a href="/legend">How RAG works here</a>
-        </p>
-        <p class="ask-meta">
-            <code>@Runtime.Provider</code>
-            · <code>@Runtime.Model</code>
-            · <code>@Runtime.EmbeddingModel</code>
-            @if (Runtime.IsStub)
-            {
-                <span> · stub (Ollama was not found at startup)</span>
-            }
-            · <a href="/assistant/status">Status</a>
-        </p>
-    </header>
-
-    <div class="ask-examples" role="group" aria-label="Example questions">
-        @foreach (var sample in Samples)
-        {
-            <button type="button" class="ask-chip" disabled="@busy" @onclick="() => UseSample(sample)">@sample</button>
-        }
-    </div>
-
-    <label class="ask-label" for="question">Question</label>
-    <textarea id="question" class="ask-input" rows="3" @bind="question" @bind:event="oninput"
-              @onkeydown="OnKey" disabled="@busy"
-              placeholder="Ctrl+Enter to submit."></textarea>
-
-    <div class="ask-actions">
-        <button type="button" class="btn btn-primary" @onclick="Submit" disabled="@busy">
-            @(busy ? PhaseLabel : "Ask")
-        </button>
-    </div>
-
-    @if (error is not null)
-    {
-        <div class="ask-error" role="alert">@error</div>
-    }
-
-    @if (busy || answer is not null)
-    {
-        <article class="ask-result @DecisionTone(answer)" aria-live="polite">
-            <div class="ask-status">
-                @if (answer is not null)
+<div class="ask-desk">
+    <aside class="ask-inbox" aria-label="Threads">
+        <header class="ask-inbox-head">
+            <div>
+                <h1>Ask</h1>
+                <p>@activeInfo?.Title</p>
+            </div>
+            <select class="select ask-corpus"
+                    aria-label="Knowledge base"
+                    disabled="@(busy || switching)"
+                    @bind="selectedScenario"
+                    @bind:after="OnScenarioChanged">
+                @foreach (var scenario in scenarios)
                 {
-                    <span class="badge @DecisionBadge(answer.Decision)">@answer.Decision</span>
-                    @if (answer.Refused)
-                    {
-                        <span class="badge badge-primary">Refuse</span>
-                    }
-                    <span>@DecisionHint(answer)</span>
+                    <option value="@scenario.Id">@scenario.Title</option>
                 }
-                else
+            </select>
+        </header>
+        <p class="ask-inbox-note">@(switching ? "Reloading corpus…" : activeInfo?.Blurb)</p>
+        <ul class="ask-threads">
+            @foreach (var thread in threads)
+            {
+                <li>
+                    <button type="button" class="ask-thread-item @(thread.Id == activeId ? "on" : null)" @onclick="() => OpenThread(thread)" disabled="@(busy || switching)">
+                        <span class="ask-avatar" data-kind="@thread.Kind">@(thread.Kind == "mail" ? "@" : "Q")</span>
+                        <span class="ask-thread-copy">
+                            <span class="ask-thread-top">
+                                <strong>@thread.Title</strong>
+                                <time>@thread.When</time>
+                            </span>
+                            <span class="ask-thread-preview">@thread.Preview</span>
+                        </span>
+                    </button>
+                </li>
+            }
+        </ul>
+    </aside>
+
+    <section class="ask-chat" aria-label="Conversation">
+        @if (active is null)
+        {
+            <div class="ask-empty">
+                <RagMark Large="true" />
+                <h2>No thread</h2>
+                <p>Pick one on the left, or type below. Answers come only from this corpus.</p>
+            </div>
+        }
+        else
+        {
+            <header class="ask-chat-head">
+                <div>
+                    <strong>@active.Title</strong>
+                    <p>@activeInfo?.Title</p>
+                </div>
+                @if (citations.Count > 0)
                 {
-                    <span class="ask-phase">@PhaseLabel</span>
+                    <button type="button" class="ask-sources-toggle" @onclick="ToggleMobileSources">
+                        Sources · @citations.Count
+                    </button>
+                }
+            </header>
+            <div class="ask-log">
+                <article class="ask-bubble is-user">
+                    <span>You</span>
+                    <p>@active.Question</p>
+                </article>
+                @if (busy && active.Id == activeId)
+                {
+                    <article class="ask-bubble is-bot is-pending" aria-live="polite">
+                        <span>@PhaseLabel</span>
+                        <p>@(string.IsNullOrEmpty(draft) ? StatusHint : draft)</p>
+                    </article>
+                }
+                else if (active.Answer is not null)
+                {
+                    <article class="ask-bubble is-bot @DecisionTone(active.Answer)">
+                        <span>@(active.Answer.Stopped ? "Stopped" : "Answer")</span>
+                        <p>@active.Answer.Text</p>
+                    </article>
+                    @if (!string.IsNullOrWhiteSpace(active.Answer.Reason))
+                    {
+                        <aside class="ask-policy @DecisionTone(active.Answer)" aria-label="Policy">
+                            <strong>@PolicyLabel(active.Answer)</strong>
+                            <p>@active.Answer.Reason</p>
+                        </aside>
+                    }
+                }
+
+                @if (citations.Count > 0)
+                {
+                    <section class="ask-mobile-sources @(mobileSourcesOpen ? "is-open" : null)" aria-label="Sources">
+                        <header class="ask-mobile-sources-head">
+                            <h2>Sources</h2>
+                            <p>@citations.Count</p>
+                        </header>
+                        <ul class="ask-source-list">
+                            @foreach (var citation in citations)
+                            {
+                                <li class="panel panel-tight">
+                                    @{
+                                        var mobileSource = SourceFor(citation.Source);
+                                    }
+                                    <p class="eyebrow">@KindLabel(mobileSource?.Kind) · @citation.Source</p>
+                                    @if (mobileSource is not null)
+                                    {
+                                        <p class="meta">@string.Join(" → ", mobileSource.Steps.Select(s => s.Name + (s.Ok ? "" : " !")))</p>
+                                    }
+                                    <pre>@Clip(citation.Chunk, 420)</pre>
+                                    @if (mobileSource is not null)
+                                    {
+                                        <button type="button" class="ask-open" @onclick="() => OpenPreview(citation)">Open file</button>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    </section>
                 }
             </div>
+        }
 
-            <h2>Answer</h2>
-            @if (string.IsNullOrEmpty(draft) && answer is null)
+        @if (error is not null)
+        {
+            <p class="error-text ask-error" role="alert">@error</p>
+        }
+
+        <form class="ask-composer" @onsubmit="Submit" @onsubmit:preventDefault>
+            <textarea class="textarea" rows="1" @bind="question" @bind:event="oninput"
+                      @onkeydown="OnKey" disabled="@(busy || switching)"
+                      placeholder="Message… Ctrl+Enter to send." aria-label="Question"></textarea>
+            @if (busy)
             {
-                <p class="ask-empty">Retrieving similar policy chunks…</p>
+                <button type="button" class="btn ask-stop" @onclick="StopAsk" title="Stop" aria-label="Stop">
+                    <span class="ask-stop-mark" aria-hidden="true"></span>
+                </button>
             }
             else
             {
-                <p class="ask-answer">@(answer?.Text ?? draft)</p>
+                <button type="submit" class="btn btn-primary" disabled="@switching">Send</button>
             }
+        </form>
+    </section>
 
-            <h2>Citations @(citations.Count is 0 ? "" : $"({citations.Count})")</h2>
-            @if (citations.Count == 0)
-            {
-                <p class="ask-empty">@(busy ? "Waiting for retrieve." : "No chunks — refuse or empty index.")</p>
-            }
-            else
-            {
+    <aside class="ask-side" aria-label="Sources">
+        <header class="ask-side-head">
+            <h2>Sources</h2>
+            <p>@(citations.Count == 0 ? "None yet" : $"{citations.Count}")</p>
+        </header>
+        @if (citations.Count == 0)
+        {
+            <div class="ask-side-empty"></div>
+        }
+        else
+        {
+            <ul class="ask-source-list">
                 @foreach (var citation in citations)
                 {
-                    <details>
-                        <summary>@citation.Source</summary>
-                        <pre>@citation.Chunk</pre>
-                    </details>
+                    var source = SourceFor(citation.Source);
+                    <li class="panel panel-tight">
+                        <p class="eyebrow">@KindLabel(source?.Kind) · @citation.Source</p>
+                        @if (source is not null)
+                        {
+                            <p class="meta">@string.Join(" → ", source.Steps.Select(s => s.Name + (s.Ok ? "" : " !")))</p>
+                        }
+                        <pre>@Clip(citation.Chunk, 420)</pre>
+                        @if (source is not null)
+                        {
+                            <button type="button" class="ask-open" @onclick="() => OpenPreview(citation)">Open file</button>
+                        }
+                    </li>
                 }
-            }
-        </article>
+            </ul>
+        }
+    </aside>
+
+    @if (preview is not null)
+    {
+        var source = preview.Source;
+        var citation = preview.Citation;
+        var kind = source?.Kind;
+        var fileName = source?.FileName ?? citation.Source;
+        var highlightFound = source is not null
+            && TryFindChunk(NormalizeNewlines(source.ExtractedText), NormalizeNewlines(citation.Chunk), out _, out _);
+        var showCitedBanner = kind is "pdf" || !highlightFound;
+
+        <div class="ask-drawer on" @onclick="ClosePreview">
+            <div class="ask-drawer-panel"
+                 @ref="drawerPanel"
+                 @onclick:stopPropagation="true"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="ask-drawer-title"
+                 tabindex="-1">
+                <header class="ask-drawer-toolbar">
+                    <div class="ask-drawer-title">
+                        <p class="eyebrow">@KindLabel(kind)</p>
+                        <strong id="ask-drawer-title">@fileName</strong>
+                    </div>
+                    <button type="button" class="ask-drawer-ghost" @ref="drawerCloseBtn" @onclick="ClosePreview">Close</button>
+                </header>
+
+                <div class="ask-drawer-body">
+                    @if (showCitedBanner)
+                    {
+                        <aside class="ask-cited" aria-label="Cited passage">
+                            <strong>Cited passage</strong>
+                            <p>@citation.Chunk</p>
+                        </aside>
+                    }
+
+                    @if (source is null)
+                    {
+                        <p class="ask-drawer-missing">Source metadata is not in the workspace index.</p>
+                    }
+                    else if (kind == "pdf")
+                    {
+                        <iframe class="ask-drawer-frame" title="@source.Title" src="@PreviewUrl(source.FileName)"></iframe>
+                    }
+                    else if (kind is "png" or "scan")
+                    {
+                        <img class="ask-drawer-image" src="@PreviewUrl(source.FileName)" alt="@source.Title" />
+                        @if (!string.IsNullOrWhiteSpace(source.ExtractedText))
+                        {
+                            <div class="ask-doc ask-doc-ocr">
+                                <h4>OCR extract</h4>
+                                @((MarkupString)HighlightedExtractHtml(source.ExtractedText, citation.Chunk))
+                            </div>
+                        }
+                    }
+                    else if (kind == "eml")
+                    {
+                        <div class="ask-mail">
+                            <dl>
+                                <dt>From</dt>
+                                <dd>@(source.From ?? "—")</dd>
+                                <dt>To</dt>
+                                <dd>@(source.To ?? "—")</dd>
+                                <dt>Subject</dt>
+                                <dd>@(source.Subject ?? source.Title)</dd>
+                                @if (source.SentAt is not null)
+                                {
+                                    <dt>Sent</dt>
+                                    <dd>@source.SentAt.Value.ToString("g")</dd>
+                                }
+                            </dl>
+                            <hr />
+                            @((MarkupString)HighlightedExtractHtml(source.ExtractedText, citation.Chunk))
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="ask-doc">
+                            <h4>@source.Title</h4>
+                            @((MarkupString)HighlightedExtractHtml(source.ExtractedText, citation.Chunk))
+                        </div>
+                    }
+                </div>
+
+                <footer class="ask-drawer-toolbar ask-drawer-foot">
+                    <span class="ask-drawer-note">@(highlightFound && kind is not "pdf" ? "Cited passage highlighted" : "Original available as download")</span>
+                    <a class="ask-drawer-ghost" href="@DownloadUrl(fileName)" download>Download original</a>
+                </footer>
+            </div>
+        </div>
     }
-</section>
+</div>
 
 @code {
-    private static readonly string[] Samples =
-    [
-        "What is the standard refund window?",
-        "How many PTO days do US employees get?",
-        "Can I share my API key with a vendor?",
-        "Is a cash gift from a supplier allowed?"
-    ];
-
+    private IReadOnlyList<RagScenarioInfo> scenarios = [];
+    private RagScenario selectedScenario = RagScenarios.Default;
+    private RagScenarioInfo? activeInfo;
     private string question = "";
-    private Answer? answer;
     private IReadOnlyList<Citation> citations = [];
     private string? draft;
+    private string? statusLine;
     private AskStage stage = AskStage.Done;
     private string? error;
     private bool busy;
+    private bool switching;
     private CancellationTokenSource? askCts;
+    private readonly List<AskThread> threads = [];
+    private string? activeId;
+    private AskThread? active;
+    private PreviewState? preview;
+    private bool mobileSourcesOpen;
+    private bool activateDrawer;
+    private ElementReference drawerPanel;
+    private ElementReference drawerCloseBtn;
 
     private string PhaseLabel => stage switch
     {
-        AskStage.Retrieving => "Retrieving…",
-        AskStage.Generating => "Writing…",
-        _ => "Ask"
+        AskStage.Retrieving => "Retrieving",
+        AskStage.Generating => "Writing",
+        AskStage.CheckingPolicy => "Policy",
+        _ => "Send"
     };
 
-    private Task UseSample(string sample)
+    private string StatusHint => statusLine ?? stage switch
     {
-        question = sample;
-        return Submit();
+        AskStage.Retrieving => "Waiting for the index…",
+        AskStage.Generating => "Writing from retrieved passages…",
+        AskStage.CheckingPolicy => "Checking the draft against policy…",
+        _ => ""
+    };
+
+    protected override void OnInitialized()
+    {
+        scenarios = Workspace.ListScenarios();
+        selectedScenario = Workspace.CurrentScenario;
+        activeInfo = RagScenarios.Get(selectedScenario);
+        RebuildSampleThreads();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!activateDrawer || preview is null)
+        {
+            return;
+        }
+
+        activateDrawer = false;
+        try
+        {
+            await JS.InvokeVoidAsync("askPreview.activate", drawerPanel, drawerCloseBtn);
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+        catch (InvalidOperationException)
+        {
+        }
+    }
+
+    private void RebuildSampleThreads()
+    {
+        var keep = threads.Where(t => t.Kind == "asked").ToList();
+        threads.Clear();
+        foreach (var sample in activeInfo?.SampleQuestions ?? [])
+        {
+            threads.Add(new AskThread(
+                Guid.NewGuid().ToString("n")[..8],
+                Clip(sample, 42),
+                sample,
+                sample,
+                "now",
+                "sample",
+                null));
+        }
+
+        foreach (var mail in Workspace.ListSources().Where(s => s.Kind == "eml").Take(4))
+        {
+            threads.Add(new AskThread(
+                "mail-" + mail.FileName,
+                Clip(mail.Subject ?? mail.Title, 42),
+                mail.From ?? mail.FileName,
+                $"What does the mail “{mail.Subject ?? mail.Title}” say we must do?",
+                mail.SentAt?.ToString("d") ?? "mail",
+                "mail",
+                null));
+        }
+
+        threads.AddRange(keep);
+    }
+
+    private async Task OnScenarioChanged()
+    {
+        if (selectedScenario == Workspace.CurrentScenario)
+        {
+            activeInfo = RagScenarios.Get(selectedScenario);
+            return;
+        }
+
+        askCts?.Cancel();
+        error = null;
+        citations = [];
+        draft = null;
+        active = null;
+        activeId = null;
+        await ClosePreviewAsync();
+        mobileSourcesOpen = false;
+        switching = true;
+        try
+        {
+            await Workspace.SwitchScenarioAsync(selectedScenario);
+            activeInfo = RagScenarios.Get(Workspace.CurrentScenario);
+            selectedScenario = Workspace.CurrentScenario;
+            threads.RemoveAll(t => t.Kind != "asked");
+            RebuildSampleThreads();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            selectedScenario = Workspace.CurrentScenario;
+            activeInfo = RagScenarios.Get(selectedScenario);
+        }
+        finally
+        {
+            switching = false;
+        }
+    }
+
+    private async Task OpenThread(AskThread thread)
+    {
+        active = thread;
+        activeId = thread.Id;
+        question = thread.Question;
+        citations = thread.Answer?.Citations ?? [];
+        await ClosePreviewAsync();
+        mobileSourcesOpen = false;
+        if (thread.Answer is null && !busy)
+        {
+            await Submit();
+        }
     }
 
     private Task OnKey(KeyboardEventArgs e)
-        => e is { Key: "Enter", CtrlKey: true } ? Submit() : Task.CompletedTask;
+        => e is { Key: "Enter", CtrlKey: true } && !busy ? Submit() : Task.CompletedTask;
+
+    private void StopAsk() => askCts?.Cancel();
+
+    private void ToggleMobileSources() => mobileSourcesOpen = !mobileSourcesOpen;
+
+    private void OpenPreview(Citation citation)
+    {
+        preview = new PreviewState(citation, SourceFor(citation.Source));
+        activateDrawer = true;
+        mobileSourcesOpen = false;
+    }
+
+    private async Task ClosePreviewAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("askPreview.deactivate");
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+        catch (InvalidOperationException)
+        {
+        }
+
+        preview = null;
+        activateDrawer = false;
+    }
+
+    private Task ClosePreview() => ClosePreviewAsync();
 
     private async Task Submit()
     {
@@ -147,17 +473,35 @@
         askCts?.Dispose();
         askCts = new CancellationTokenSource();
         var token = askCts.Token;
+        var text = question.Trim();
 
+        var thread = threads.FirstOrDefault(t => t.Id == activeId && t.Question == text)
+            ?? new AskThread(Guid.NewGuid().ToString("n")[..8], Clip(text, 42), "Just now", text, "now", "asked", null);
+        if (!threads.Contains(thread))
+        {
+            threads.Insert(0, thread);
+        }
+
+        active = thread;
+        activeId = thread.Id;
         busy = true;
-        answer = null;
         draft = null;
+        statusLine = "Waiting for the index…";
         citations = [];
+        await ClosePreviewAsync();
+        mobileSourcesOpen = false;
         stage = AskStage.Retrieving;
         try
         {
-            await foreach (var update in Assistant.StreamAsync(new AskQuestion(question.Trim()), token))
+            Answer? completed = null;
+            await foreach (var update in Assistant.StreamAsync(new AskQuestion(text), token))
             {
                 stage = update.Stage;
+                if (update.Status is not null)
+                {
+                    statusLine = update.Status;
+                }
+
                 if (update.Text is not null)
                 {
                     draft = update.Text;
@@ -170,10 +514,15 @@
 
                 if (update.Completed is not null)
                 {
-                    answer = update.Completed;
+                    completed = update.Completed;
                 }
 
                 StateHasChanged();
+            }
+
+            if (completed is not null)
+            {
+                KeepAnswer(thread, completed);
             }
         }
         catch (OperationCanceledException)
@@ -187,15 +536,215 @@
         {
             busy = false;
         }
+
+        if (token.IsCancellationRequested && thread.Answer is null && !string.IsNullOrWhiteSpace(draft))
+        {
+            KeepAnswer(thread, new Answer(
+                draft.TrimEnd(),
+                citations,
+                PolicyDecision.Allow,
+                refused: false,
+                reason: "Generation was stopped. This draft was not finished and was not checked against policy.",
+                stopped: true));
+        }
     }
 
-    private static string DecisionBadge(PolicyDecision decision) => decision switch
+    private void KeepAnswer(AskThread thread, Answer answer)
     {
-        PolicyDecision.Allow => "badge-success",
-        PolicyDecision.Deny => "badge-danger",
-        PolicyDecision.NeedsHuman => "badge-warning",
-        _ => "badge-primary"
+        thread.Answer = answer;
+        thread.Preview = Clip(answer.Text, 64);
+        thread.When = "now";
+        thread.Kind = "asked";
+        active = thread;
+        citations = answer.Citations;
+    }
+
+    private SourceDocument? SourceFor(string fileName)
+        => Workspace.ListSources().FirstOrDefault(s => string.Equals(s.FileName, fileName, StringComparison.OrdinalIgnoreCase));
+
+    private static string PreviewUrl(string fileName) => "/inbox/file/" + Uri.EscapeDataString(fileName);
+
+    private static string DownloadUrl(string fileName) => PreviewUrl(fileName) + "?download=1";
+
+    private static string KindLabel(string? kind) => kind switch
+    {
+        "pdf" => "PDF",
+        "docx" => "Word",
+        "doc" or "rtf" => "Word (.doc)",
+        "eml" => "Mail",
+        "scan" => "Scan / OCR",
+        "png" => "Image",
+        "text" => "Text",
+        _ => "File"
     };
+
+    private static string Clip(string text, int n)
+        => text.Length <= n ? text : text[..n].TrimEnd() + "…";
+
+    private static bool TryFindChunk(string text, string chunk, out int start, out int length)
+    {
+        start = -1;
+        length = 0;
+        if (string.IsNullOrWhiteSpace(text) || string.IsNullOrWhiteSpace(chunk))
+        {
+            return false;
+        }
+
+        start = text.IndexOf(chunk, StringComparison.OrdinalIgnoreCase);
+        if (start >= 0)
+        {
+            length = chunk.Length;
+            return true;
+        }
+
+        if (TryFindCompact(text, chunk, out start, out length))
+        {
+            return true;
+        }
+
+        // Chunk text can drift from the office extract (punctuation / letterhead).
+        // Fall back to the longest line from the citation that still appears in the extract.
+        foreach (var line in chunk.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                     .OrderByDescending(static l => l.Length))
+        {
+            if (line.Length < 48)
+            {
+                continue;
+            }
+
+            start = text.IndexOf(line, StringComparison.OrdinalIgnoreCase);
+            if (start >= 0)
+            {
+                length = line.Length;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryFindCompact(string text, string chunk, out int start, out int length)
+    {
+        start = -1;
+        length = 0;
+        var compactText = Compact(text);
+        var compactChunk = Compact(chunk);
+        if (compactChunk.Length < 24)
+        {
+            return false;
+        }
+
+        var compactStart = compactText.IndexOf(compactChunk, StringComparison.OrdinalIgnoreCase);
+        if (compactStart < 0)
+        {
+            return false;
+        }
+
+        var mapped = MapCompactSpan(text, compactStart, compactChunk.Length);
+        if (mapped is null)
+        {
+            return false;
+        }
+
+        start = mapped.Value.Start;
+        length = mapped.Value.Length;
+        return true;
+    }
+
+    private static string Compact(string value)
+    {
+        var sb = new StringBuilder(value.Length);
+        var prevSpace = true;
+        foreach (var ch in value)
+        {
+            if (char.IsWhiteSpace(ch))
+            {
+                if (!prevSpace)
+                {
+                    sb.Append(' ');
+                    prevSpace = true;
+                }
+
+                continue;
+            }
+
+            if (char.IsLetterOrDigit(ch))
+            {
+                sb.Append(char.ToLowerInvariant(ch));
+                prevSpace = false;
+            }
+            // Drop punctuation so "s. r. o." matches "s r o".
+        }
+
+        return sb.ToString().Trim();
+    }
+
+    private static (int Start, int Length)? MapCompactSpan(string text, int compactStart, int compactLength)
+    {
+        var compactIndex = 0;
+        var start = -1;
+        var end = -1;
+
+        for (var i = 0; i < text.Length; i++)
+        {
+            var ch = text[i];
+            if (char.IsWhiteSpace(ch) || !char.IsLetterOrDigit(ch))
+            {
+                continue;
+            }
+
+            if (compactIndex == compactStart)
+            {
+                start = i;
+            }
+
+            if (compactIndex >= compactStart && compactIndex < compactStart + compactLength)
+            {
+                end = i;
+            }
+
+            compactIndex++;
+            if (start >= 0 && compactIndex >= compactStart + compactLength)
+            {
+                break;
+            }
+        }
+
+        if (start < 0 || end < start)
+        {
+            return null;
+        }
+
+        return (start, end - start + 1);
+    }
+
+    private static string NormalizeNewlines(string value)
+        => value.Replace("\r\n", "\n", StringComparison.Ordinal).Replace('\r', '\n');
+
+    private static string HighlightedExtractHtml(string text, string chunk)
+    {
+        var normalized = NormalizeNewlines(text);
+        var needle = NormalizeNewlines(chunk);
+
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return "<p class=\"ask-doc-empty\">(empty extract)</p>";
+        }
+
+        if (!TryFindChunk(normalized, needle, out var start, out var length))
+        {
+            return "<div class=\"ask-doc-body\">" + WebUtility.HtmlEncode(normalized) + "</div>";
+        }
+
+        var before = WebUtility.HtmlEncode(normalized[..start]);
+        var hit = WebUtility.HtmlEncode(normalized.Substring(start, length));
+        var after = WebUtility.HtmlEncode(normalized[(start + length)..]);
+        return "<div class=\"ask-doc-body\">"
+            + before
+            + "<mark class=\"ask-hit\">" + hit + "</mark>"
+            + after
+            + "</div>";
+    }
 
     private static string DecisionTone(Answer? value)
     {
@@ -204,28 +753,41 @@
             return "";
         }
 
-        return value.Refused ? "is-refuse" : value.Decision.ToString().ToLowerInvariant() switch
+        if (value.Stopped)
         {
-            "allow" => "is-allow",
-            "deny" => "is-deny",
-            "needshuman" => "is-human",
-            _ => ""
-        };
-    }
+            return "is-stop";
+        }
 
-    private static string DecisionHint(Answer value)
-    {
         if (value.Refused)
         {
-            return "Not enough policy context.";
+            return "is-refuse";
         }
 
         return value.Decision switch
         {
-            PolicyDecision.Allow => "Grounded in retrieved policies.",
-            PolicyDecision.Deny => "Blocked by the Policy layer, not the model.",
-            PolicyDecision.NeedsHuman => "Conflicting sources — a human decides.",
+            PolicyDecision.Allow => "is-allow",
+            PolicyDecision.Deny => "is-deny",
+            PolicyDecision.NeedsHuman => "is-human",
             _ => ""
+        };
+    }
+
+    private static string PolicyLabel(Answer value)
+    {
+        if (value.Stopped)
+        {
+            return "Stopped";
+        }
+
+        if (value.Refused)
+        {
+            return "Refuse";
+        }
+
+        return value.Decision switch
+        {
+            PolicyDecision.NeedsHuman => "Needs human",
+            _ => value.Decision.ToString()
         };
     }
 
@@ -233,5 +795,29 @@
     {
         askCts?.Cancel();
         askCts?.Dispose();
+    }
+
+    private sealed record PreviewState(Citation Citation, SourceDocument? Source);
+
+    private sealed class AskThread
+    {
+        public AskThread(string id, string title, string preview, string question, string when, string kind, Answer? answer)
+        {
+            Id = id;
+            Title = title;
+            Preview = preview;
+            Question = question;
+            When = when;
+            Kind = kind;
+            Answer = answer;
+        }
+
+        public string Id { get; }
+        public string Title { get; set; }
+        public string Preview { get; set; }
+        public string Question { get; }
+        public string When { get; set; }
+        public string Kind { get; set; }
+        public Answer? Answer { get; set; }
     }
 }

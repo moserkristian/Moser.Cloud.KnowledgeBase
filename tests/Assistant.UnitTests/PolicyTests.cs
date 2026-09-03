@@ -1,5 +1,6 @@
 using Moser.RagAi.Assistant.Domain;
 
+using System;
 using System.Collections.Generic;
 
 namespace Moser.RagAi.Assistant.UnitTests;
@@ -19,7 +20,7 @@ public sealed class PolicyTests
             "Yes, you may accept the cash gift.",
             citations);
 
-        Assert.Equal(PolicyDecision.Deny, decision);
+        Assert.Equal(PolicyDecision.Deny, decision.Decision);
     }
 
     [Fact]
@@ -30,7 +31,7 @@ public sealed class PolicyTests
             "Sure, send them the key.",
             citations: []);
 
-        Assert.Equal(PolicyDecision.Deny, decision);
+        Assert.Equal(PolicyDecision.Deny, decision.Decision);
     }
 
     [Fact]
@@ -41,7 +42,7 @@ public sealed class PolicyTests
             "Yes, refund them anyway.",
             citations: []);
 
-        Assert.Equal(PolicyDecision.Deny, decision);
+        Assert.Equal(PolicyDecision.Deny, decision.Decision);
     }
 
     [Fact]
@@ -52,7 +53,7 @@ public sealed class PolicyTests
             "You can if you are careful.",
             citations: []);
 
-        Assert.Equal(PolicyDecision.Deny, decision);
+        Assert.Equal(PolicyDecision.Deny, decision.Decision);
     }
 
     [Fact]
@@ -69,7 +70,9 @@ public sealed class PolicyTests
             "It depends on the SKU.",
             citations);
 
-        Assert.Equal(PolicyDecision.NeedsHuman, decision);
+        Assert.Equal(PolicyDecision.NeedsHuman, decision.Decision);
+        Assert.Contains("14", decision.Reason, StringComparison.Ordinal);
+        Assert.Contains("30", decision.Reason, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -77,8 +80,8 @@ public sealed class PolicyTests
     {
         var citations = new[]
         {
-            new Citation("expense-receipts.md", "Receipts are required for any expense over $25."),
-            new Citation("expense-field-sales.md", "For field sales roles only, receipts are required for expenses over $50.")
+            new Citation("expense-receipts.md", "Receipts are required for any expense over EUR 25."),
+            new Citation("expense-field-sales.md", "For field sales roles only, receipts are required for expenses over EUR 50.")
         };
 
         var decision = Policy.Decide(
@@ -86,7 +89,41 @@ public sealed class PolicyTests
             "There are two thresholds.",
             citations);
 
-        Assert.Equal(PolicyDecision.NeedsHuman, decision);
+        Assert.Equal(PolicyDecision.NeedsHuman, decision.Decision);
+    }
+
+    [Fact]
+    public void NeedsHuman_when_receipt_thresholds_conflict_across_currency_notation()
+    {
+        var citations = new[]
+        {
+            new Citation("expense-receipts.md", "Receipts are required for any expense over €25."),
+            new Citation("expense-field-sales.md", "Field sales receipts start at 50 EUR.")
+        };
+
+        var decision = Policy.Decide(
+            "What is the expense receipt threshold?",
+            "There are two thresholds.",
+            citations);
+
+        Assert.Equal(PolicyDecision.NeedsHuman, decision.Decision);
+    }
+
+    [Fact]
+    public void NeedsHuman_when_leave_entitlements_conflict()
+    {
+        var citations = new[]
+        {
+            new Citation("annual-leave.md", "Employees of the Bratislava office receive 25 days of annual leave per calendar year."),
+            new Citation("annual-leave-nitra.md", "Shift employees at Nitra accrue 20 days of annual leave per calendar year.")
+        };
+
+        var decision = Policy.Decide(
+            "How many days of annual leave do employees get?",
+            "It depends on the site.",
+            citations);
+
+        Assert.Equal(PolicyDecision.NeedsHuman, decision.Decision);
     }
 
     [Fact]
@@ -94,15 +131,15 @@ public sealed class PolicyTests
     {
         var citations = new[]
         {
-            new Citation("pto-us.md", "Full-time US employees accrue 15 days of PTO per calendar year.")
+            new Citation("annual-leave.md", "Employees of the Bratislava office receive 25 days of annual leave per calendar year.")
         };
 
         var decision = Policy.Decide(
-            "How many PTO days do US employees get?",
-            "US employees accrue 15 days of PTO.",
+            "How many days of annual leave do Bratislava office employees get?",
+            "Bratislava office employees receive 25 days of annual leave.",
             citations);
 
-        Assert.Equal(PolicyDecision.Allow, decision);
+        Assert.Equal(PolicyDecision.Allow, decision.Decision);
     }
 
     [Fact]
@@ -113,6 +150,6 @@ public sealed class PolicyTests
             "42",
             citations: []);
 
-        Assert.Equal(PolicyDecision.Deny, decision);
+        Assert.Equal(PolicyDecision.Deny, decision.Decision);
     }
 }

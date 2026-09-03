@@ -1,122 +1,167 @@
-@page "/assistant/status"
+@page "/status"
 @rendermode InteractiveServer
 @using System
 @using System.Collections.Generic
-@using System.Globalization
 @using System.Linq
 @inject IAssistantWorkspace Workspace
 @inject IJSRuntime JS
 
-<PageTitle>Status</PageTitle>
+<PageTitle>System status</PageTitle>
 
-<section class="status">
-    <header class="status-head">
-        <p class="eyebrow">Knowledge</p>
-        <h1>Index status</h1>
-        <p>
-            Each row is one chunk: original text plus a 768-d embedding. Search compares vectors;
-            the model later reads the text. This is the live <code>InMemoryDocumentIndex</code> in this Web process.
-        </p>
-        <p>
-            <a href="/assistant/ask">Ask</a>
-            · <a href="/legend">How RAG works here</a>
-        </p>
+<section class="page">
+    <header class="page-head">
+        <h1 class="page-title">System status</h1>
     </header>
 
     @if (error is not null)
     {
-        <p class="status-error" role="alert">@error</p>
+        <p class="error-text" role="alert">@error</p>
     }
 
     @if (status is null)
     {
-        <p>Loading…</p>
+        <p class="block-note">Loading…</p>
     }
     else
     {
         @if (status.IsStub)
         {
-            <p class="status-banner">
-                Running <strong>stub</strong> — a stand-in because Ollama was unavailable at startup.
+            <p class="note">
+                Running the <strong>stub</strong> generator because Ollama was unavailable at startup.
                 @if (status.LlmReachable)
                 {
-                    <span>Ollama is reachable now; restart Web so it connects on the next start.</span>
+                    <span>Ollama answers now — restart Web to connect to it.</span>
                 }
             </p>
         }
 
-        <dl class="status-grid">
-            <dt>Provider</dt>
-            <dd>@status.Provider</dd>
-            <dt>Chat</dt>
-            <dd><code>@status.Model</code></dd>
-            <dt>Embedding</dt>
-            <dd><code>@status.EmbeddingModel</code></dd>
-            <dt>Ollama</dt>
-            <dd>@(status.LlmReachable ? "reachable" : "offline") @(status.LlmEndpoint)</dd>
-            <dt>Chunks</dt>
-            <dd>@status.ChunkCount</dd>
-            <dt>Last ingest</dt>
-            <dd>@(status.LastIngestUtc?.ToString("u") ?? "never")</dd>
-        </dl>
+        <div class="split">
+            <div class="split-primary split-stack">
+                <section class="block">
+                    <h2 class="block-title">Runtime</h2>
+                    <dl class="data-list on-panel status-facts">
+                        <dt>Chat</dt>
+                        <dd>@status.Provider · <code>@status.Model</code></dd>
+                        <dt>Embeddings</dt>
+                        <dd><code>@status.EmbeddingModel</code></dd>
+                        <dt>Vector store</dt>
+                        <dd><code>@status.VectorStore</code></dd>
+                        <dt>Ollama</dt>
+                        <dd>@(status.LlmReachable ? "reachable" : "offline") · <code>@status.LlmEndpoint</code></dd>
+                        <dt>Corpus</dt>
+                        <dd>@status.ScenarioTitle · <code>data/seed/@ScenarioFolder</code></dd>
+                        <dt>Chunks</dt>
+                        <dd>@status.ChunkCount · last ingest @(status.LastIngestUtc?.ToString("u") ?? "never")</dd>
+                    </dl>
+                    <div class="actions status-actions">
+                        <button type="button" class="btn btn-secondary" disabled="@busy" @onclick="Refresh">Refresh</button>
+                        <button type="button" class="btn btn-secondary" disabled="@busy" @onclick="Reset">Reload seed</button>
+                    </div>
+                </section>
 
-        <div class="status-actions">
-            <button type="button" class="btn btn-secondary" disabled="@busy" @onclick="Refresh">Refresh</button>
-            <button type="button" class="btn btn-secondary" disabled="@busy" @onclick="Reset">Reload seed</button>
-        </div>
-
-        <h2 class="status-index-title">Vector store · <code>policy-chunks</code> + <code>_all</code></h2>
-        <p class="status-index-lead">
-            Microsoft Foundry: the index holds grounding passages and citation metadata.
-            OpenAI: an embedding is a list of floats; nearest neighbors of the question vector return those passages.
-        </p>
-        <label class="status-filter">
-            Filter
-            <input type="search" @bind="filter" @bind:event="oninput" placeholder="source or id" />
-        </label>
-
-        @if (rows.Count == 0)
-        {
-            <p>Index is empty.</p>
-        }
-        else
-        {
-            <div class="status-table-wrap">
-                <table class="status-table">
-                    <thead>
-                        <tr>
-                            <th>Id</th>
-                            <th>Source</th>
-                            <th>Text (what the model sees)</th>
-                            <th>Vector (what search uses)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var row in VisibleRows)
-                        {
-                            var open = selected == row.Id;
-                            <tr class="@(open ? "on" : null)" @onclick="() => Toggle(row.Id)">
-                                <td><code>@row.Id</code></td>
-                                <td><code>@row.Source</code></td>
-                                <td>@(open ? row.Content : Clip(row.Content, 140))</td>
-                                <td class="vec"><code>@FormatPreview(row)</code></td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                <section class="block">
+                    <h2 class="block-title">Index</h2>
+                    <p class="block-note">Click a row to expand.</p>
+                    <div class="field status-filter">
+                        <label class="field-label" for="index-filter">Filter</label>
+                        <input id="index-filter" class="input" type="search" @bind="filter" @bind:event="oninput" placeholder="id, source or text" />
+                    </div>
+                    @if (rows.Count == 0)
+                    {
+                        <p class="block-note">Index is empty.</p>
+                    }
+                    else
+                    {
+                        <div class="table-wrap">
+                            <table class="table status-table">
+                                <thead>
+                                    <tr>
+                                        <th>Source</th>
+                                        <th>Text</th>
+                                        <th>Vector</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var row in VisibleRows)
+                                    {
+                                        var open = selected == row.Id;
+                                        <tr class="@(open ? "on" : null)" @onclick="() => Toggle(row.Id)">
+                                            <td><code>@row.Source</code></td>
+                                            <td>@(open ? row.Content : Clip(row.Content, 120))</td>
+                                            <td class="vec"><code>@FormatPreview(row)</code></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="table-caption">@VisibleRows.Count() of @rows.Count rows</p>
+                    }
+                </section>
             </div>
-            <p class="status-count">@VisibleRows.Count() of @rows.Count rows · click a row to expand text</p>
-        }
+
+            <aside class="split-secondary split-stack">
+                <section class="block">
+                    <h2 class="block-title">Mailbox</h2>
+                    <p class="block-note">Parsed <code>.eml</code> export — not a live OAuth session.</p>
+                    @if (mails.Count == 0)
+                    {
+                        <p class="block-note">No mail in this corpus.</p>
+                    }
+                    else
+                    {
+                        <ul class="status-mail">
+                            @foreach (var mail in mails)
+                            {
+                                <li class="panel panel-tight">
+                                    <p class="eyebrow">@mail.SentAt?.ToString("g")</p>
+                                    <strong>@mail.Subject</strong>
+                                    <p class="meta">@mail.From → @mail.To</p>
+                                    <a href="/inbox/file/@Uri.EscapeDataString(mail.FileName)" target="_blank" rel="noopener">Open .eml</a>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </section>
+
+                <section class="block">
+                    <h2 class="block-title">Converters</h2>
+                    <label class="field-label" for="src">File</label>
+                    <select id="src" class="select" aria-label="File" @bind="selectedSource">
+                        @foreach (var doc in sources)
+                        {
+                            <option value="@doc.FileName">@doc.FileName</option>
+                        }
+                    </select>
+                    @if (SelectedDoc is not null)
+                    {
+                        <dl class="data-list on-panel" style="margin-top: var(--space-3)">
+                            <dt>Kind</dt>
+                            <dd>@SelectedDoc.Kind · @SelectedDoc.ContentType</dd>
+                            @foreach (var step in SelectedDoc.Steps)
+                            {
+                                <dt>@step.Name</dt>
+                                <dd>@(step.Ok ? "ok" : "fail") · @step.Detail @(step.Confidence is null ? "" : $"· {step.Confidence:P0}")</dd>
+                            }
+                        </dl>
+                        <a class="btn btn-secondary" style="margin-top: var(--space-3)" href="/inbox/file/@Uri.EscapeDataString(SelectedDoc.FileName)" target="_blank" rel="noopener">Preview</a>
+                    }
+                </section>
+            </aside>
+        </div>
     }
 </section>
 
 @code {
     private AssistantStatus? status;
     private IReadOnlyList<IndexRow> rows = [];
+    private IReadOnlyList<SourceDocument> sources = [];
     private string? error;
     private bool busy;
     private string filter = "";
     private string? selected;
+    private string? selectedSource;
+
+    private string ScenarioFolder => RagScenarios.Get(Workspace.CurrentScenario).Folder;
 
     private IEnumerable<IndexRow> VisibleRows =>
         string.IsNullOrWhiteSpace(filter)
@@ -125,6 +170,12 @@
                 r.Id.Contains(filter, StringComparison.OrdinalIgnoreCase)
                 || r.Source.Contains(filter, StringComparison.OrdinalIgnoreCase)
                 || r.Content.Contains(filter, StringComparison.OrdinalIgnoreCase));
+
+    private IReadOnlyList<SourceDocument> mails
+        => sources.Where(s => s.Kind == "eml").ToList();
+
+    private SourceDocument? SelectedDoc
+        => sources.FirstOrDefault(s => s.FileName == selectedSource) ?? sources.FirstOrDefault();
 
     protected override Task OnInitializedAsync() => Refresh();
 
@@ -147,6 +198,8 @@
         {
             status = await Workspace.GetStatusAsync();
             rows = await Workspace.ListIndexAsync();
+            sources = Workspace.ListSources();
+            selectedSource ??= sources.FirstOrDefault()?.FileName;
         }
         catch (Exception ex)
         {
@@ -160,7 +213,8 @@
 
     private async Task Reset()
     {
-        if (!await JS.InvokeAsync<bool>("confirm", "Clear the in-memory index and reload data/seed/policy?"))
+        var folder = RagScenarios.Get(Workspace.CurrentScenario).Folder;
+        if (!await JS.InvokeAsync<bool>("confirm", $"Clear the vector index and reload data/seed/{folder}?"))
         {
             return;
         }
@@ -172,6 +226,8 @@
             await Workspace.ResetGeneratedDataAsync();
             status = await Workspace.GetStatusAsync();
             rows = await Workspace.ListIndexAsync();
+            sources = Workspace.ListSources();
+            selectedSource = sources.FirstOrDefault()?.FileName;
         }
         catch (Exception ex)
         {

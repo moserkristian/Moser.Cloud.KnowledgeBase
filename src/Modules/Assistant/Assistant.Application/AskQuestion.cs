@@ -12,6 +12,7 @@ public enum AskStage
 {
     Retrieving,
     Generating,
+    CheckingPolicy,
     Done
 }
 
@@ -19,7 +20,8 @@ public sealed record AskUpdate(
     AskStage Stage,
     string? Text,
     IReadOnlyList<Citation> Citations,
-    Answer? Completed);
+    Answer? Completed,
+    string? Status = null);
 
 public interface IAskQuestion
 {

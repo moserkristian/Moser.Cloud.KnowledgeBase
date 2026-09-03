@@ -5,17 +5,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.VectorData.InMemory" />
+    <PackageReference Include="DocumentFormat.OpenXml" />
     <PackageReference Include="Microsoft.Bcl.Memory" />
     <PackageReference Include="Microsoft.Extensions.AI" />
     <PackageReference Include="Microsoft.Extensions.Configuration" />
-    <PackageReference Include="Microsoft.Extensions.DataIngestion" />
-    <PackageReference Include="Microsoft.Extensions.DataIngestion.Markdig" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
-    <PackageReference Include="Microsoft.Extensions.VectorData.Abstractions" />
     <PackageReference Include="Microsoft.ML.Tokenizers" />
     <PackageReference Include="Microsoft.ML.Tokenizers.Data.Cl100kBase" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="Pgvector" />
+    <PackageReference Include="QuestPDF" />
+    <PackageReference Include="SkiaSharp" />
+    <PackageReference Include="UglyToad.PdfPig" />
   </ItemGroup>
 
   <ItemGroup>

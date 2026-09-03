@@ -1,7 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
+using Moser.RagAi.Assistant.Application;
 using Moser.RagAi.Ingestion.Application;
 
 using System;
@@ -16,28 +18,32 @@ internal sealed class SeedIngestionHostedService : IHostedService
 {
     private readonly IngestSeedHandler _ingest;
     private readonly AssistantWorkspace _workspace;
-    private readonly IConfiguration _configuration;
+    private readonly IOptions<AssistantOptions> _options;
     private readonly IHostEnvironment _environment;
     private readonly ILogger<SeedIngestionHostedService> _logger;
 
     public SeedIngestionHostedService(
         IngestSeedHandler ingest,
         AssistantWorkspace workspace,
-        IConfiguration configuration,
+        IOptions<AssistantOptions> options,
         IHostEnvironment environment,
         ILogger<SeedIngestionHostedService> logger)
     {
         _ingest = ingest;
         _workspace = workspace;
-        _configuration = configuration;
+        _options = options;
         _environment = environment;
         _logger = logger;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        var directory = SeedPathResolver.Resolve(_configuration, _environment);
-        _logger.LogInformation("Ingesting assistant policy seed from {Directory}", directory ?? "(missing)");
+        var scenario = _workspace.CurrentScenario;
+        var directory = SeedPathResolver.ResolveForScenario(scenario, _options.Value, _environment);
+        _logger.LogInformation(
+            "Ingesting RAG scenario {Scenario} from {Directory}",
+            scenario,
+            directory ?? "(missing)");
         try
         {
             await _ingest.Handle(new IngestSeed(directory), cancellationToken).ConfigureAwait(false);
@@ -45,7 +51,10 @@ internal sealed class SeedIngestionHostedService : IHostedService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Policy seed ingest failed. The assistant will start, but the index may be empty until you reset it from /assistant/status.");
+            _logger.LogError(
+                ex,
+                "Seed ingest failed for {Scenario}. The assistant will start, but the index may be empty until you switch/reload from /ask or /status.",
+                scenario);
         }
     }
 
@@ -54,8 +63,37 @@ internal sealed class SeedIngestionHostedService : IHostedService
 
 internal static class SeedPathResolver
 {
-    public static string? Resolve(IConfiguration configuration, IHostEnvironment? environment)
-        => Resolve(configuration[$"{AssistantOptions.SectionName}:SeedPath"] ?? "data/seed/policy", environment);
+    public static RagScenario ResolveInitialScenario(IConfiguration configuration, AssistantOptions options)
+    {
+        var raw = configuration[$"{AssistantOptions.SectionName}:Scenario"] ?? options.Scenario;
+        if (RagScenarios.TryParse(raw, out var scenario))
+        {
+            return scenario;
+        }
+
+        // Backward compat: SeedPath ending with a known folder name.
+        var seedPath = configuration[$"{AssistantOptions.SectionName}:SeedPath"] ?? options.SeedPath;
+        if (!string.IsNullOrWhiteSpace(seedPath))
+        {
+            var name = Path.GetFileName(seedPath.TrimEnd('/', '\\'));
+            if (RagScenarios.TryParse(name, out scenario))
+            {
+                return scenario;
+            }
+        }
+
+        return RagScenarios.Default;
+    }
+
+    public static string? ResolveForScenario(
+        RagScenario scenario,
+        AssistantOptions options,
+        IHostEnvironment? environment)
+    {
+        var root = string.IsNullOrWhiteSpace(options.SeedRoot) ? "data/seed" : options.SeedRoot;
+        var relative = RagScenarios.RelativeSeedPath(scenario, root);
+        return Resolve(relative, environment);
+    }
 
     public static string? Resolve(string path, IHostEnvironment? environment)
     {

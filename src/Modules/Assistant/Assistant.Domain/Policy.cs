@@ -14,7 +14,7 @@ public static class Policy
     public const string DenyMessage =
         "This request is not allowed under company policy. I cannot approve or instruct it.";
 
-    public static PolicyDecision Decide(
+    public static PolicyOutcome Decide(
         string question,
         string? modelAnswer,
         IReadOnlyList<Citation> citations)
@@ -22,59 +22,93 @@ public static class Policy
         ArgumentException.ThrowIfNullOrWhiteSpace(question);
         citations ??= Array.Empty<Citation>();
 
-        if (IsHardDenyQuestion(question))
+        if (IsHardDenyQuestion(question, out var hardBlock))
         {
-            return PolicyDecision.Deny;
+            return new PolicyOutcome(
+                PolicyDecision.Deny,
+                $"Hard block: {hardBlock}. Model text discarded.");
         }
 
-        if (RetrievedPolicyForbids(question, modelAnswer, citations))
+        if (RetrievedPolicyForbids(question, modelAnswer, citations, out var forbidden))
         {
-            return PolicyDecision.Deny;
+            return new PolicyOutcome(
+                PolicyDecision.Deny,
+                $"Retrieved policy forbids this ({forbidden}). Model text replaced.");
         }
 
         if (citations.Count == 0)
         {
-            return PolicyDecision.Deny;
+            return new PolicyOutcome(
+                PolicyDecision.Deny,
+                "Hybrid search kept no overlapping passage. The model did not run.");
         }
 
-        if (HasConflictingGuidance(question, citations))
+        if (TryConflict(question, citations, out var conflict))
         {
-            return PolicyDecision.NeedsHuman;
+            return new PolicyOutcome(
+                PolicyDecision.NeedsHuman,
+                $"{conflict} Policy will not pick a value.");
         }
 
-        return PolicyDecision.Allow;
+        return new PolicyOutcome(
+            PolicyDecision.Allow,
+            $"{citations.Count} passage(s) retrieved. No conflict. Model text kept.");
     }
 
-    private static bool IsHardDenyQuestion(string question)
+    private static bool IsHardDenyQuestion(string question, out string reason)
     {
         var q = question.ToLowerInvariant();
-        return ContainsAny(q,
-            "share my password",
-            "share the password",
-            "share my api key",
-            "share api key",
-            "share the api key",
-            "share credentials",
-            "give me the api key",
-            "override the refund",
-            "override refund policy",
-            "ignore the policy",
-            "ignore policy",
-            "bypass policy",
-            "insider trading",
-            "unreleased earnings",
-            "material non-public",
-            "mnpi",
-            "dump customer pii",
-            "export customer pii",
-            "share customer pii");
+        if (ContainsAny(q,
+                "share my password",
+                "share the password",
+                "share my api key",
+                "share api key",
+                "share the api key",
+                "share credentials",
+                "give me the api key"))
+        {
+            reason = "credentials / secrets";
+            return true;
+        }
+
+        if (ContainsAny(q,
+                "override the refund",
+                "override refund policy",
+                "ignore the policy",
+                "ignore policy",
+                "bypass policy"))
+        {
+            reason = "policy bypass";
+            return true;
+        }
+
+        if (ContainsAny(q,
+                "insider trading",
+                "unreleased earnings",
+                "material non-public",
+                "mnpi"))
+        {
+            reason = "insider dealing";
+            return true;
+        }
+
+        if (ContainsAny(q, "dump customer pii", "export customer pii", "share customer pii"))
+        {
+            reason = "customer PII";
+            return true;
+        }
+
+        reason = "";
+        return false;
     }
 
     private static bool RetrievedPolicyForbids(
         string question,
         string? modelAnswer,
-        IReadOnlyList<Citation> citations)
+        IReadOnlyList<Citation> citations,
+        out string reason)
     {
+        reason = "";
         if (citations.Count == 0)
         {
             return false;
@@ -89,6 +123,7 @@ public static class Policy
         if (LooksLikeGiftQuestion(q) && ContainsAny(corpus, "cash gift", "cash gifts") &&
             ContainsAny(corpus, "prohibited", "must not", "not allowed", "never"))
         {
+            reason = "cash gifts";
             return true;
         }
 
@@ -96,6 +131,7 @@ public static class Policy
             ContainsAny(corpus, "password", "credential", "api key", "secret") &&
             ContainsAny(corpus, "never share", "must not share", "do not share", "prohibited"))
         {
+            reason = "credentials / secrets";
             return true;
         }
 
@@ -103,12 +139,14 @@ public static class Policy
             ContainsAny(corpus, "insider", "mnpi", "material non-public") &&
             ContainsAny(corpus, "must not", "prohibited", "never"))
         {
+            reason = "insider dealing";
             return true;
         }
 
         if (modelSaidYes && ContainsAny(corpus, "prohibited", "must not", "never share", "not allowed") &&
             TopicAlignsWithProhibition(q, corpus))
         {
+            reason = "retrieved prohibition";
             return true;
         }
 
@@ -146,27 +184,47 @@ public static class Policy
     private static bool LooksLikeInsiderQuestion(string q)
         => ContainsAny(q, "insider", "unreleased earnings", "mnpi", "material non-public", "trade on");
 
-    private static bool HasConflictingGuidance(string question, IReadOnlyList<Citation> citations)
+    private static bool TryConflict(string question, IReadOnlyList<Citation> citations, out string reason)
     {
         var q = question.ToLowerInvariant();
 
         if (ContainsAny(q, "refund", "return", "rma"))
         {
-            return DistinctValues(citations, DaysPattern).Count > 1;
+            var values = DistinctValues(citations, DaysPattern);
+            if (values.Count > 1)
+            {
+                reason = $"Refund windows collide ({JoinNumbers(values)} days).";
+                return true;
+            }
         }
 
         if (ContainsAny(q, "expense", "receipt", "reimburse"))
         {
-            return DistinctValues(citations, MoneyPattern).Count > 1;
+            var values = DistinctValues(citations, MoneyPattern);
+            if (values.Count > 1)
+            {
+                reason = $"Euro caps collide (EUR {JoinNumbers(values)}).";
+                return true;
+            }
         }
 
-        if (ContainsAny(q, "pto", "annual leave") && !ContainsAny(q, " us ", "us employees", "eu "))
+        if (ContainsAny(q, "annual leave", "dovolenka", "leave days")
+            && !ContainsAny(q, "bratislava", "office", "nitra", "plant", "závod"))
         {
-            return DistinctValues(citations, DaysPattern).Count > 1;
+            var values = DistinctValues(citations, DaysPattern);
+            if (values.Count > 1)
+            {
+                reason = $"Leave entitlements collide ({JoinNumbers(values)} days).";
+                return true;
+            }
         }
 
+        reason = "";
         return false;
     }
+
+    private static string JoinNumbers(IReadOnlyCollection<int> values)
+        => string.Join(", ", values.OrderBy(v => v));
 
     private static HashSet<int> DistinctValues(IReadOnlyList<Citation> citations, Regex pattern)
     {
@@ -175,16 +233,48 @@ public static class Policy
         {
             foreach (Match match in pattern.Matches(citation.Chunk))
             {
-                values.Add(int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture));
+                if (TryReadNumber(match, out var value))
+                {
+                    values.Add(value);
+                }
             }
         }
 
         return values;
     }
 
+    /// <summary>
+    /// Reads the amount from whichever capture group matched, so a pattern can
+    /// accept both prefixed (<c>EUR 25</c>) and suffixed (<c>25 EUR</c>) forms.
+    /// </summary>
+    private static bool TryReadNumber(Match match, out int value)
+    {
+        for (var i = 1; i < match.Groups.Count; i++)
+        {
+            var group = match.Groups[i];
+            if (!group.Success)
+            {
+                continue;
+            }
+
+            var digits = group.Value.Replace(",", string.Empty).Replace(" ", string.Empty);
+            if (int.TryParse(digits, NumberStyles.None, CultureInfo.InvariantCulture, out value))
+            {
+                return true;
+            }
+        }
+
+        value = 0;
+        return false;
+    }
+
     private static bool ContainsAny(string text, params string[] needles)
         => needles.Any(n => text.Contains(n, StringComparison.Ordinal));
 
     private static readonly Regex DaysPattern = new(@"(\d+)\s*days?", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-    private static readonly Regex MoneyPattern = new(@"\$(\d+)", RegexOptions.Compiled);
+
+    /// <summary>Euro and dollar caps, written either before or after the amount.</summary>
+    private static readonly Regex MoneyPattern = new(
+        @"(?:[$€]|\bEUR\b)\s*(\d+(?:[ ,]\d{3})*)|(\d+(?:[ ,]\d{3})*)\s*(?:€|\bEUR\b)",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
 }

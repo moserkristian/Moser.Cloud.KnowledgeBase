@@ -1,0 +1,76 @@
+/* Only what is unique to How it works. Type, panels and the definition grid
+   come from the standard in wwwroot/app.css. */
+
+.how-flow {
+    margin: 0 0 var(--space-3);
+    padding: var(--space-4) var(--space-4) var(--space-4) var(--space-7);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-relaxed);
+}
+
+.how-flow li + li { margin-top: var(--space-2); }
+
+/* Title lives inside the panel so it is not a floating label on the border. */
+.how-glossary .block-title {
+    margin: 0 0 var(--space-3);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--line);
+}
+
+.how-glossary .block-title + .data-list {
+    margin-top: 0;
+}
+
+.how-terms {
+    --label-col: 11rem;
+}
+
+.how-terms a { word-break: break-word; }
+
+.how-preview {
+    overflow: hidden;
+    padding: 0;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.how-preview img,
+.how-preview iframe {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: 18rem;
+    object-fit: contain;
+    border: 0;
+    background: var(--bg);
+}
+
+.how-preview pre {
+    margin: 0;
+    padding: var(--space-3);
+    max-height: 18rem;
+    overflow: auto;
+    font-size: var(--fs-2xs);
+    white-space: pre-wrap;
+}
+
+.how-steps {
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.how-steps li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: var(--space-2) 0;
+    border-top: 1px solid var(--line);
+    font-size: var(--fs-xs);
+}
+
+.how-steps li.ok strong { color: var(--success-600); }
+.how-steps li.fail strong { color: var(--danger-600); }
